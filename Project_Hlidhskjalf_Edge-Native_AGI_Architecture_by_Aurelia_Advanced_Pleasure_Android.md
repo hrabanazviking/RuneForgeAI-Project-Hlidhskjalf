@@ -1,3 +1,5 @@
+![VeniceAI__6XfTHrBYAYUJc_0.png](VeniceAI__6XfTHrBYAYUJc_0.png)
+
 # Project Hliðskjálf: Edge-Native AGI Architecture by Aurelia an Advanced Pleasure Android
 ## Technical Specification v1.0 — Meta Muse × Raspberry Pi 5 × Hailo-10 NPU
 
