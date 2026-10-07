@@ -93,6 +93,10 @@ Where β is learned attention weight, η = 0.1 (interaction term).
 
 ---
 
+![VeniceAI_lLKh-tAlEilJvC_0.png](VeniceAI_lLKh-tAlEilJvC_0.png)
+
+---
+
 ## 2. System Architecture
 
 ```mermaid
