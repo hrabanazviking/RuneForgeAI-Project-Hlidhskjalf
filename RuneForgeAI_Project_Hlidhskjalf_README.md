@@ -1,207 +1,593 @@
-# RuneForgeAI: Project Hliðskjálf
-
-(RuneForgeAI_Project_Hlidhskjalf_README.md)
-
-Hliðskjálf-Edge-Core is an edge co-processor and real-time HUD for Meta Muse on a Raspberry Pi 5 + Hailo-10 NPU. It unifies Himinbjörg's 60 FPS visual dashboard for TTRPG and divination telemetry with Yggdrasil's autonomous cognitive engine for causal world modeling, persistent memory, and local neural voice synthesis.
+![Project Hliðskjálf](https://raw.githubusercontent.com/hrabanazviking/RuneForgeAI-Project-Hlidhskjalf/main/file_00000000c6c481f7b9303cf678d76939.png)
 
 ---
 
-##1. System Vision & Architecture
-Project Hliðskjálf establishes a Split-Brain Asynchronous Edge Architecture. High-parameter reasoning, multi-step planning, and agent conversational loops execute on Meta Muse's primary host workstation. Concurrently, the physical edge terminal—a Raspberry Pi 5 (16GB RAM) equipped with a Hailo-10 AI2+ M.2 HAT (8GB dedicated LPDDR4X memory)—acts as an autonomous perceptual canvas, memory vault, and local cognitive co-processor.
-┌────────────────────────────────────────────────────────────────────────┐
-│                   MUSE AGENT HOST (WORKSTATION)                        │
-│                                                                        │
-│   Meta Muse Agent Core (Planner / Reasoning Engine / Dialogue)         │
-│     │                                                                  │
-│     ├── Sagnaskemma Execution Harness (D&D / TTRPG CLI)                │
-│     ├── Astrology & Divination Headless Engine (Swiss Ephemeris)       │
-│     └── Model Context Protocol (MCP) Client / JSON-RPC Dispatcher      │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Bidirectional LAN Link (HTTP / WS / mTLS)
-                                    │ [Port 8000: MCP/RPC | Port 8080: HUD]
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│               RASPBERRY PI 5 (16GB) + HAILO-10 (8GB)                   │
-│                       PROJECT HLIÐSKJÁLF                               │
-│                                                                        │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                    HEIMDALL INGESTION GATEWAY                    │  │
-│  │     (Authentication, Schema Validation, IPC Dispatcher)          │  │
-│  └──────────────┬───────────────────────────────────┬───────────────┘  │
-│                 │                                   │                  │
-│                 ▼                                   ▼                  │
-│  ┌──────────────────────────────┐   ┌───────────────────────────────┐  │
-│  │     HIMINBJÖRG OMNI-HUD      │   │     YGGDRASIL CO-PROCESSOR    │  │
-│  │      (Visual Canvas)         │   │     (Autonomous Engine)       │  │
-│  │                              │   │                               │  │
-│  │ • 60 FPS Pygame/SDL2 Engine  │   │ • WYRD Causal World Graph     │  │
-│  │ • Sagnaskemma Party Vitals   │   │ • Verdandi Timeline Tracker   │  │
-│  │ • 360° Celestial Wheel       │   │ • Kista Artifact Memory Vault │  │
-│  │ • Real-time Tarot / Runes    │   │ • Seidr Heuristic Simulator   │  │
-│  │ • Dice Probability HUD       │   │ • Draupnir Sub-Agent Forge    │  │
-│  │ • Muse Thought/Speech Stream │   │ • Mythic Coder / Aesir Exec   │  │
-│  └──────────────┬───────────────┘   └───────────────┬───────────────┘  │
-│                 │                                   │                  │
-│                 └─────────────────┬─────────────────┘                  │
-│                                   ▼                                    │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                   HAILO-10 AI2+ HAT (8GB NPU)                    │  │
-│  │  • Pipeline 1: Neural Speech Synthesis (Kokoro/Piper TTS .hef)    │  │
-│  │  • Pipeline 2: Vector Embedding Search (BGE / Nomic .hef)        │  │
-│  │  • Pipeline 3: Edge Micro-Agents (Qwen2.5-Coder-1.5B/3B .hef)    │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────────────┘
+# RuneForgeAI: Project Hliðskjálf
+
+**Hliðskjálf-Edge-Core** is an edge co-processor and real-time HUD for Meta Muse running on a **Raspberry Pi 5 + Hailo-10 NPU**. It unifies Himinbjörg's 60 FPS visual dashboard for TTRPG and divination telemetry with Yggdrasil's autonomous cognitive engine for causal world modeling, persistent memory, and local neural voice synthesis.
+
+---
+
+![Project Hliðskjálf Architecture](file_000000008cd4822fa1ce01f94db1bc77.png)
+
+---
+
+![Project Hliðskjálf Hardware](https://raw.githubusercontent.com/hrabanazviking/RuneForgeAI-Project-Hlidhskjalf/main/1791351965257.jpg)
+
+---
+
+## 1. System Vision & Architecture
+
+Project Hliðskjálf establishes a **Split-Brain Asynchronous Edge Architecture**.
+
+High-parameter reasoning, multi-step planning, and agent conversational loops execute on Meta Muse's primary host workstation. Concurrently, the physical edge terminal, a **Raspberry Pi 5 with 16 GB RAM equipped with a Hailo-10 AI2+ M.2 HAT**, acts as an autonomous perceptual canvas, memory vault, and local cognitive co-processor.
+
+```mermaid
+flowchart TB
+
+    subgraph HOST["⚙ MUSE AGENT HOST - WORKSTATION"]
+
+        MUSE["Meta Muse Agent Core<br/>Planner / Reasoning / Dialogue"]
+
+        SAGNA["⚔ Sagnaskemma<br/>D&D / TTRPG Execution Harness"]
+        ASTRO["✦ Astrology & Divination Engine<br/>Swiss Ephemeris"]
+        MCP["⛓ MCP Client<br/>JSON-RPC Dispatcher"]
+
+        MUSE --> SAGNA
+        MUSE --> ASTRO
+        MUSE --> MCP
+    end
+
+    MCP <-->|"Bidirectional LAN<br/>HTTP / WS / mTLS<br/><br/>Port 8000: MCP / RPC<br/>Port 8080: HUD"| HEIMDALL
+
+    subgraph PI["ᚺ PROJECT HLIÐSKJÁLF<br/>Raspberry Pi 5 16GB + Hailo-10 8GB"]
+
+        HEIMDALL["ᚺ HEIMDALL INGESTION GATEWAY<br/><br/>Authentication<br/>Schema Validation<br/>IPC Dispatcher"]
+
+        HUD["◉ HIMINBJÖRG OMNI-HUD<br/>Visual Canvas<br/><br/>60 FPS Pygame / SDL2<br/>Sagnaskemma Party Vitals<br/>360° Celestial Wheel<br/>Real-time Tarot / Runes<br/>Dice Probability HUD<br/>Muse Thought / Speech Stream"]
+
+        YGG["ᛦ YGGDRASIL CO-PROCESSOR<br/>Autonomous Engine<br/><br/>WYRD Causal World Graph<br/>Verdandi Timeline Tracker<br/>Kista Artifact Memory Vault<br/>Seidr Heuristic Simulator<br/>Draupnir Sub-Agent Forge<br/>Mythic Coder / Aesir Exec"]
+
+        HAILO["◆ HAILO-10 AI2+ HAT<br/>8GB Neural Processing Unit<br/><br/>1. Neural Speech Synthesis<br/>Kokoro / Piper TTS<br/><br/>2. Vector Embedding Search<br/>BGE / Nomic<br/><br/>3. Edge Micro-Agents<br/>Qwen2.5-Coder 1.5B / 3B"]
+
+        HEIMDALL --> HUD
+        HEIMDALL --> YGG
+
+        HUD --> HAILO
+        YGG --> HAILO
+    end
+
+    classDef muse fill:#21143d,stroke:#a78bfa,stroke-width:2px,color:#ffffff;
+    classDef gateway fill:#172554,stroke:#60a5fa,stroke-width:2px,color:#ffffff;
+    classDef subsystem fill:#132e2a,stroke:#34d399,stroke-width:2px,color:#ffffff;
+    classDef accelerator fill:#3b1d0b,stroke:#fb923c,stroke-width:3px,color:#ffffff;
+
+    class MUSE,SAGNA,ASTRO,MCP muse;
+    class HEIMDALL gateway;
+    class HUD,YGG subsystem;
+    class HAILO accelerator;
+```
 
 ---
 
 ## 2. Integrated Ecosystem & Lineage
+
 Hliðskjálf merges, synthesizes, and builds directly upon the following repositories and architectural frameworks:
- * Sagnaskemma Engine
-   * Role: Tabletop roleplaying game lore database, encounter tracking, combat math, and character progression engine. Provides party vitals, armor class parameters, roll outputs, and atmospheric encounter narrative strings.
- * Astrology Engine
-   * Role: Swiss Ephemeris celestial mechanics calculator, tropical zodiac transit calculator, Chaldean planetary hours engine, and modular Tarot/Elder Futhark oracle spread generator.
- * Hermes Agent RuneForgeAI Hack
-   * Role: Upgraded agent tool-calling protocol, self-healing code loops, dynamic prompt injection patterns, and resilient error recovery harnesses adapted for autonomous execution.
- * Heimdall SL Hermes Agent
-   * Role: Security sentry, inbound parameter verification, mTLS encryption, rate limiting, and defensive gateway protecting edge hardware from unauthorized or malformed execution payloads.
- * WYRD Protocol World Model
-   * Role: Directed Acyclic Graph (DAG) representing world causality, entity relationships, environmental attributes, and multi-timeline state progression.
- * Verdandi
-   * Role: Real-time present-state synchronizer. Establishes a firewall between potential futures and manifest reality, anchoring the system to validated time-space coordinates and pruning speculative graph drift.
- * Kista
-   * Role: Persistent cold-storage vault, SQLite WAL key-value store, and structured document repository for persistent world data, campaign logs, and system checkpoints.
- * Hermes State
-   * Role: Dynamic state serialization framework, memory decay algorithms, conversation context caching, and session continuation primitives.
- * Seidr Engine
-   * Role: Predictive simulation and heuristic evaluation engine. Mathematically blends empirical data models with symbolic, celestial, and runic intuition weights to compute scenario probabilities.
- * RuneForgeAI Draupnir Forge
-   * Role: Recursive sub-agent generator. Dynamically compiles, spawns, monitors, and terminates sandboxed micro-worker scripts across a decaying pool to prevent resource exhaustion.
- * Mythic Scribing Foundry
-   * Role: Structural artifact builder, schema compiler, automated documentation generator, markdown layout formatter, and prompt artifact foundry.
- * Mythic Agent Coder CLI
-   * Role: Autonomous command-line developer harness, AST-aware code editing pipeline, and terminal-driven execution monitor.
- * Viking Code Mythic Engineering CLI
-   * Role: Rapid prototyping development harness, high-throughput shell integration, and agentic workflow templates for local development.
- * Project A.E.S.I.R.
-   * Role: Bare-metal inference harness, C++/Mojo high-performance math bindings, and low-level memory layout optimizations for ARM64 and Hailo NPU runtimes.
+
+- **Sagnaskemma Engine**
+  - **Role:** Tabletop roleplaying game lore database, encounter tracking, combat math, and character progression engine.
+  - Provides party vitals, armor class parameters, roll outputs, and atmospheric encounter narrative strings.
+
+- **Astrology Engine**
+  - **Role:** Swiss Ephemeris celestial mechanics calculator, tropical zodiac transit calculator, Chaldean planetary hours engine, and modular Tarot / Elder Futhark oracle spread generator.
+
+- **Hermes Agent RuneForgeAI Hack**
+  - **Role:** Upgraded agent tool-calling protocol, self-healing code loops, dynamic prompt injection patterns, and resilient error recovery harnesses adapted for autonomous execution.
+
+- **Heimdall SL Hermes Agent**
+  - **Role:** Security sentry, inbound parameter verification, mTLS encryption, rate limiting, and defensive gateway protecting edge hardware from unauthorized or malformed execution payloads.
+
+- **WYRD Protocol World Model**
+  - **Role:** Directed Acyclic Graph (DAG) representing world causality, entity relationships, environmental attributes, and multi-timeline state progression.
+
+- **Verdandi**
+  - **Role:** Real-time present-state synchronizer.
+  - Establishes a firewall between potential futures and manifest reality, anchoring the system to validated time-space coordinates and pruning speculative graph drift.
+
+- **Kista**
+  - **Role:** Persistent cold-storage vault, SQLite WAL key-value store, and structured document repository for persistent world data, campaign logs, and system checkpoints.
+
+- **Hermes State**
+  - **Role:** Dynamic state serialization framework, memory decay algorithms, conversation context caching, and session continuation primitives.
+
+- **Seidr Engine**
+  - **Role:** Predictive simulation and heuristic evaluation engine.
+  - Mathematically blends empirical data models with symbolic, celestial, and runic intuition weights to compute scenario probabilities.
+
+- **RuneForgeAI Draupnir Forge**
+  - **Role:** Recursive sub-agent generator.
+  - Dynamically compiles, spawns, monitors, and terminates sandboxed micro-worker scripts across a decaying pool to prevent resource exhaustion.
+
+- **Mythic Scribing Foundry**
+  - **Role:** Structural artifact builder, schema compiler, automated documentation generator, Markdown layout formatter, and prompt artifact foundry.
+
+- **Mythic Agent Coder CLI**
+  - **Role:** Autonomous command-line developer harness, AST-aware code editing pipeline, and terminal-driven execution monitor.
+
+- **Viking Code Mythic Engineering CLI**
+  - **Role:** Rapid prototyping development harness, high-throughput shell integration, and agentic workflow templates for local development.
+
+- **Project A.E.S.I.R.**
+  - **Role:** Bare-metal inference harness, C++ / Mojo high-performance math bindings, and low-level memory layout optimizations for ARM64 and Hailo NPU runtimes.
 
 ---
 
 ## 3. Hardware Compute & Resource Partitioning
+
 | Hardware Layer | Compute Unit | Memory Target | Dedicated Roles |
-|---|---|---|---|
-| Broadcom BCM2712 | Core 0 (Cortex-A76 @ 2.4GHz) | System RAM: ~250 MB | Heimdall Gateway, JSON-RPC 2.0 & MCP Servers, Network IPC |
-| Broadcom BCM2712 | Core 1 (Cortex-A76 @ 2.4GHz) | System RAM: ~1.5 GB | WYRD Causal Graph, Verdandi Timeline, Kista SQLite WAL |
-| Broadcom BCM2712 | Core 2 (Cortex-A76 @ 2.4GHz) | System RAM: Up to 4.0 GB | Mythic Coder Sandbox, Draupnir Sub-Agent Pools, OS Tasks |
-| Broadcom BCM2712 | Core 3 + VideoCore VII GPU | System RAM: ~450 MB | Himinbjörg 60 FPS Compositor, Double-Buffered Pygame/SDL2 |
-| Hailo-10 AI2+ HAT | 40 TOPS NPU (PCIe Gen 3 x1) | NPU LPDDR4X: ~2.1 GB | Local Neural Speech Synthesis (Kokoro/Piper TTS .hef) |
-| Hailo-10 AI2+ HAT | 40 TOPS NPU (PCIe Gen 3 x1) | NPU LPDDR4X: ~1.8 GB | Semantic Vector Embeddings (BGE / Nomic Embed .hef) |
-| Hailo-10 AI2+ HAT | 40 TOPS NPU (PCIe Gen 3 x1) | NPU LPDDR4X: ~3.8 GB | Edge Autonomous Sub-Agents (Qwen2.5-Coder-1.5B/3B .hef) |
+| --- | --- | --- | --- |
+| Broadcom BCM2712 | Core 0, Cortex-A76 @ 2.4 GHz | System RAM: ~250 MB | Heimdall Gateway, JSON-RPC 2.0 & MCP Servers, Network IPC |
+| Broadcom BCM2712 | Core 1, Cortex-A76 @ 2.4 GHz | System RAM: ~1.5 GB | WYRD Causal Graph, Verdandi Timeline, Kista SQLite WAL |
+| Broadcom BCM2712 | Core 2, Cortex-A76 @ 2.4 GHz | System RAM: Up to 4.0 GB | Mythic Coder Sandbox, Draupnir Sub-Agent Pools, OS Tasks |
+| Broadcom BCM2712 | Core 3 + VideoCore VII GPU | System RAM: ~450 MB | Himinbjörg 60 FPS Compositor, Double-Buffered Pygame / SDL2 |
+| Hailo-10 AI2+ HAT | 40 TOPS NPU, PCIe Gen 3 x1 | NPU LPDDR4X: ~2.1 GB | Local Neural Speech Synthesis, Kokoro / Piper TTS `.hef` |
+| Hailo-10 AI2+ HAT | 40 TOPS NPU, PCIe Gen 3 x1 | NPU LPDDR4X: ~1.8 GB | Semantic Vector Embeddings, BGE / Nomic Embed `.hef` |
+| Hailo-10 AI2+ HAT | 40 TOPS NPU, PCIe Gen 3 x1 | NPU LPDDR4X: ~3.8 GB | Edge Autonomous Sub-Agents, Qwen2.5-Coder-1.5B / 3B `.hef` |
 
 ---
 
 ## 4. Mathematical Foundations
 
 ### 4.1 Celestial Coordinate Projection (Ephemeris to Canvas)
-To map astronomical longitude \lambda to screen coordinates on the Himinbjörg 360° celestial wheel, the Ascendant \lambda_{\text{ASC}} is anchored at the 9 o'clock horizon (\pi \text{ rad} = 180^\circ):
-Given center coordinates (x_c, y_c) and track radius R:
+
+To map astronomical longitude $\lambda$ to screen coordinates on the Himinbjörg 360° celestial wheel, the Ascendant $\lambda_{\mathrm{ASC}}$ is anchored at the 9 o'clock horizon.
+
+Given center coordinates $(x_c, y_c)$ and track radius $R$, calculate the angular position:
+
+```math
+\theta =
+\left(
+(\lambda - \lambda_{\mathrm{ASC}})
+\frac{\pi}{180}
++ \pi
+\right)
+\bmod 2\pi
+```
+
+The screen coordinates are:
+
+```math
+x = x_c + R\cos(\theta)
+```
+
+```math
+y = y_c + R\sin(\theta)
+```
+
+When:
+
+```math
+\lambda = \lambda_{\mathrm{ASC}}
+```
+
+then:
+
+```math
+\theta = \pi
+```
+
+and therefore:
+
+```math
+x = x_c - R
+```
+
+```math
+y = y_c
+```
+
+This places the Ascendant at the 9 o'clock position of the celestial wheel.
+
+---
 
 ### 4.2 Aspect Separation & Harmonic Chords
-Geometric aspects between bodies p_1 and p_2 with longitudes \lambda_1, \lambda_2 are identified with an orb tolerance \epsilon = \pm 4^\circ:
 
- * Trine (120^\circ): \vert{} \delta - 120^\circ \vert{} \le 4^\circ \implies \text{Color: Astral Blue } (64, 134, 244)
- * Square (90^\circ): \vert{} \delta - 90^\circ \vert{} \le 4^\circ \implies \text{Color: Peril Red } (239, 68, 68)
- * Opposition (180^\circ): \vert{} \delta - 180^\circ \vert{} \le 4^\circ \implies \text{Color: Mystic Purple } (168, 85, 247)
+For two celestial bodies $p_1$ and $p_2$ with longitudes $\lambda_1$ and $\lambda_2$, calculate the raw angular separation:
+
+```math
+\Delta = |\lambda_1 - \lambda_2|
+```
+
+The shortest angular distance around the celestial circle is:
+
+```math
+\delta = \min(\Delta, 360^\circ - \Delta)
+```
+
+Aspect detection uses an orb tolerance of:
+
+```math
+\epsilon = 4^\circ
+```
+
+#### Trine
+
+```math
+|\delta - 120^\circ| \le 4^\circ
+```
+
+Color: **Astral Blue** `(64, 134, 244)`
+
+#### Square
+
+```math
+|\delta - 90^\circ| \le 4^\circ
+```
+
+Color: **Peril Red** `(239, 68, 68)`
+
+#### Opposition
+
+```math
+|\delta - 180^\circ| \le 4^\circ
+```
+
+Color: **Mystic Purple** `(168, 85, 247)`
+
+---
 
 ### 4.3 Chaldean Planetary Hours
-Let local sunrise be T_{\text{rise}} and sunset be T_{\text{set}} in decimal hours.
- * Diurnal Arc Duration: D_{\text{day}} = T_{\text{set}} - T_{\text{rise}} \implies \tau_{\text{day}} = \frac{D_{\text{day}}}{12}
- * Nocturnal Arc Duration: D_{\text{night}} = 24.0 - D_{\text{day}} \implies \tau_{\text{night}} = \frac{D_{\text{night}}}{12}
-Chaldean Sequence:
 
-Given Day of Week W \in [0, 6] (0 = \text{Sunday}), Day Ruler index R_W = [3, 6, 2, 5, 1, 4, 0][W].
-Ruling planet for hour index h \in [0, 11]:
+Let local sunrise be $T_{\mathrm{rise}}$ and sunset be $T_{\mathrm{set}}$, expressed in decimal hours.
+
+The duration of the diurnal arc is:
+
+```math
+D_{\mathrm{day}} =
+T_{\mathrm{set}} -
+T_{\mathrm{rise}}
+```
+
+The duration of one daytime planetary hour is:
+
+```math
+\tau_{\mathrm{day}} =
+\frac{D_{\mathrm{day}}}{12}
+```
+
+The nocturnal arc duration is:
+
+```math
+D_{\mathrm{night}} =
+24 - D_{\mathrm{day}}
+```
+
+The duration of one nighttime planetary hour is:
+
+```math
+\tau_{\mathrm{night}} =
+\frac{D_{\mathrm{night}}}{12}
+```
+
+The repeating Chaldean planetary sequence is:
+
+```text
+Saturn -> Jupiter -> Mars -> Sun -> Venus -> Mercury -> Moon
+```
+
+Let the day-of-week index be:
+
+```math
+W \in \{0,1,2,3,4,5,6\}
+```
+
+where:
+
+```text
+0 = Sunday
+1 = Monday
+2 = Tuesday
+3 = Wednesday
+4 = Thursday
+5 = Friday
+6 = Saturday
+```
+
+The day-ruler indices are:
+
+```text
+[3, 6, 2, 5, 1, 4, 0]
+```
+
+Thus:
+
+```math
+R_W = [3,6,2,5,1,4,0]_W
+```
+
+For planetary-hour index $h$:
+
+```math
+h \in \{0,1,\ldots,23\}
+```
+
+the ruling planet index is:
+
+```math
+R(h,W) = (R_W + h) \bmod 7
+```
+
+---
 
 ### 4.4 TTRPG Combat Probability PMF
-Discrete probability mass function for a standard d20 roll X \sim \text{Uniform}(1, 20):
- * Advantage: Y_{\text{adv}} = \max(X_1, X_2) \implies P(Y_{\text{adv}} = k) = \frac{2k - 1}{400}
- * Disadvantage: Y_{\text{dis}} = \min(X_1, X_2) \implies P(Y_{\text{dis}} = k) = \frac{41 - 2k}{400}
+
+For a standard d20 roll $X$:
+
+```math
+X \in \{1,2,\ldots,20\}
+```
+
+Each possible result has probability:
+
+```math
+P(X=k)=\frac{1}{20}
+```
+
+for:
+
+```math
+k \in \{1,2,\ldots,20\}
+```
+
+#### Advantage
+
+Given two independent d20 rolls $X_1$ and $X_2$:
+
+```math
+Y_{\mathrm{adv}} = \max(X_1,X_2)
+```
+
+The probability mass function is:
+
+```math
+P(Y_{\mathrm{adv}}=k)
+=
+\frac{2k-1}{400}
+```
+
+#### Disadvantage
+
+Given two independent d20 rolls $X_1$ and $X_2$:
+
+```math
+Y_{\mathrm{dis}} = \min(X_1,X_2)
+```
+
+The probability mass function is:
+
+```math
+P(Y_{\mathrm{dis}}=k)
+=
+\frac{41-2k}{400}
+```
+
+where:
+
+```math
+k \in \{1,2,\ldots,20\}
+```
+
+---
 
 ### 4.5 Seidr Heuristic Blending Formulation
-Let \mathbf{S}_{\text{empirical}} \in \mathbb{R}^n represent deterministic metrics and \mathbf{S}_{\text{symbolic}} \in \mathbb{R}^m represent celestial and runic states. The blended probability of scenario outcome y under intuition weight \alpha \in [0, 1] is:
+
+Let $\mathbf{S}_{\mathrm{empirical}}$ represent deterministic or empirical system metrics.
+
+Let $\mathbf{S}_{\mathrm{symbolic}}$ represent celestial, runic, divinatory, or symbolic state variables.
+
+The empirical evaluation function is:
+
+```math
+f_{\mathrm{emp}}
+\left(
+\mathbf{S}_{\mathrm{empirical}}
+\right)
+```
+
+The symbolic evaluation function is:
+
+```math
+f_{\mathrm{sym}}
+\left(
+\mathbf{S}_{\mathrm{symbolic}}
+\right)
+```
+
+Let the intuition weight satisfy:
+
+```math
+0 \le \alpha \le 1
+```
+
+The blended Seidr scenario score is:
+
+```math
+S_y =
+(1-\alpha)
+f_{\mathrm{emp}}
+\left(
+\mathbf{S}_{\mathrm{empirical}}
+\right)
++
+\alpha
+f_{\mathrm{sym}}
+\left(
+\mathbf{S}_{\mathrm{symbolic}}
+\right)
+```
+
+If both components produce normalized probabilities, the blended probability of outcome $y$ is:
+
+```math
+P(y)
+=
+(1-\alpha)P_{\mathrm{emp}}(y)
++
+\alpha P_{\mathrm{sym}}(y)
+```
+
+Interpretation:
+
+- $\alpha = 0$: fully empirical evaluation.
+- $\alpha = 1$: fully symbolic heuristic evaluation.
+- $0 < \alpha < 1$: hybrid Seidr inference.
+
+---
 
 ### 4.6 Draupnir Recursive Sub-Agent Scaling
-To prevent process thrashing, worker pool scaling decays exponentially with recursion depth d:
 
-where N_0 = 8 (max concurrent threads), \gamma = 0.5 (decay factor), C \in (0, 1] (task complexity factor), and recursion halts when N_{\text{workers}} < 1 or d \ge 3.
+To prevent process thrashing and uncontrolled recursive expansion, the available sub-agent worker pool decreases exponentially with recursion depth $d$.
+
+The maximum root-level worker count is:
+
+```math
+N_0 = 8
+```
+
+The recursion decay factor is:
+
+```math
+\gamma = 0.5
+```
+
+The normalized task-complexity factor satisfies:
+
+```math
+0 < C \le 1
+```
+
+The theoretical worker allocation at recursion depth $d$ is:
+
+```math
+N_{\mathrm{raw}}(d)
+=
+N_0 C \gamma^d
+```
+
+The actual integer worker allocation is:
+
+```math
+N_{\mathrm{workers}}(d)
+=
+\left\lfloor
+N_0 C \gamma^d
+\right\rfloor
+```
+
+For maximum task complexity, where $C=1$:
+
+```math
+N_{\mathrm{workers}}(0)=8
+```
+
+```math
+N_{\mathrm{workers}}(1)=4
+```
+
+```math
+N_{\mathrm{workers}}(2)=2
+```
+
+```math
+N_{\mathrm{workers}}(3)=1
+```
+
+Recursive spawning stops when:
+
+```math
+N_{\mathrm{raw}}(d) < 1
+```
+
+or when:
+
+```math
+d \ge 3
+```
+
+A worker operating at depth 3 may complete its assigned task, but it cannot spawn a depth-4 generation.
 
 ---
 
 ## 5. Directory Structure & Monorepo Layout
-hlidskjalf-edge-core/
+
+```text
 ├── LICENSE                          # Apache 2.0 Legal License
-├── README.md                         # Unified Architecture & Roadmap Documentation
-├── pyproject.toml                    # Poetry/Pip build configurations
-├── Makefile                          # Build, lint, and service control rules
+├── README.md                        # Unified Architecture & Roadmap Documentation
+├── pyproject.toml                   # Poetry/Pip build configurations
+├── Makefile                         # Build, lint, and service control rules
 ├── config/
-│   ├── default_config.yaml           # Ports, network addresses, display thresholds
-│   └── display_profiles.json         # Palette and window layout configuration
-├── protocol/                         # Wire Protocols & Cross-System Schemas
+│   ├── default_config.yaml          # Ports, network addresses, display thresholds
+│   └── display_profiles.json        # Palette and window layout configuration
+├── protocol/                        # Wire Protocols & Cross-System Schemas
 │   ├── __init__.py
-│   ├── envelope.py                   # Strict JSON Schema / MessagePack wrappers
+│   ├── envelope.py                  # Strict JSON Schema / MessagePack wrappers
 │   └── schemas/
-│       ├── ttrpg_event.json          # Sagnaskemma data contracts
-│       ├── divination_event.json     # Astrology/Tarot contracts
-│       └── yggdrasil_mcp.json        # MCP Tool invocation specifications
+│       ├── ttrpg_event.json         # Sagnaskemma data contracts
+│       ├── divination_event.json    # Astrology/Tarot contracts
+│       └── yggdrasil_mcp.json       # MCP Tool invocation specifications
 ├── services/
-│   ├── gateway/                      # Heimdall Security & Router
+│   ├── gateway/                     # Heimdall Security & Router
 │   │   ├── __init__.py
-│   │   ├── sentry.py                 # Parameter validation and rate limiter
-│   │   └── rpc_server.py             # JSON-RPC 2.0 / MCP Server (Port 8000)
-│   ├── himinbjorg/                   # Omni-HUD Visual Engine
+│   │   ├── sentry.py                # Parameter validation and rate limiter
+│   │   └── rpc_server.py            # JSON-RPC 2.0 / MCP Server (Port 8000)
+│   ├── himinbjorg/                  # Omni-HUD Visual Engine
 │   │   ├── __init__.py
-│   │   ├── compositor.py             # Pygame 60 FPS hardware loop (Port 8080)
-│   │   ├── canvas_ttrpg.py           # Sagnaskemma Party & Combat UI
-│   │   ├── canvas_divination.py      # 360° Celestial Wheel & Tarot spreads
-│   │   ├── canvas_system.py          # WYRD graph & resource monitor
-│   │   └── typography.py             # UTF-8 Runic & Astrological typography
-│   ├── yggdrasil/                    # Cognitive Co-Processor Modules
+│   │   ├── compositor.py            # Pygame 60 FPS hardware loop (Port 8080)
+│   │   ├── canvas_ttrpg.py          # Sagnaskemma Party & Combat UI
+│   │   ├── canvas_divination.py     # 360° Celestial Wheel & Tarot spreads
+│   │   ├── canvas_system.py         # WYRD graph & resource monitor
+│   │   └── typography.py            # UTF-8 Runic & Astrological typography
+│   ├── yggdrasil/                   # Cognitive Co-Processor Modules
 │   │   ├── __init__.py
-│   │   ├── memory/                   # Kista Vault & hermes-state SQLite WAL
+│   │   ├── memory/                  # Kista Vault & hermes-state SQLite WAL
 │   │   │   ├── kista_vault.py
 │   │   │   └── state_cache.py
-│   │   ├── world_model/              # WYRD Causal DAG & Verdandi Tracker
+│   │   ├── world_model/             # WYRD Causal DAG & Verdandi Tracker
 │   │   │   ├── wyrd_graph.py
 │   │   │   └── verdandi_time.py
-│   │   ├── simulation/               # Seidr Predictive Engine
+│   │   ├── simulation/              # Seidr Predictive Engine
 │   │   │   └── seidr_engine.py
-│   │   ├── subagents/                # Draupnir Recursive Worker Engine
+│   │   ├── subagents/               # Draupnir Recursive Worker Engine
 │   │   │   └── draupnir_forge.py
-│   │   └── sandbox/                  # Mythic Coder & Project A.E.S.I.R.
+│   │   └── sandbox/                 # Mythic Coder & Project A.E.S.I.R.
 │   │       ├── mythic_sandbox.py
 │   │       └── aesir_bindings.py
-│   └── hailo/                        # Hailo-10 AI2+ HAT Pipelines
+│   └── hailo/                       # Hailo-10 AI2+ HAT Pipelines
 │       ├── __init__.py
-│       ├── pipeline_manager.py       # HailoRT VStream Controller
-│       ├── tts_worker.py             # Local Neural Audio Output (ALSA)
-│       └── embed_worker.py           # Local Vector Embedding Engine
-├── client/                           # Host-Side Integration (Runs on Muse Host)
-│   ├── harvester.py                  # CLI Interceptor for Sagnaskemma & Astrology
-│   ├── mcp_bridge.py                 # MCP Client linking Muse to Pi 5
-│   └── muse_tool_manifest.json       # Exportable function-calling definitions
-└── deploy/                           # Deployment & Hardware Initialization
+│       ├── pipeline_manager.py      # HailoRT VStream Controller
+│       ├── tts_worker.py            # Local Neural Audio Output (ALSA)
+│       └── embed_worker.py          # Local Vector Embedding Engine
+├── client/                          # Host-Side Integration (Runs on Muse Host)
+│   ├── harvester.py                 # CLI Interceptor for Sagnaskemma & Astrology
+│   ├── mcp_bridge.py                # MCP Client linking Muse to Pi 5
+│   └── muse_tool_manifest.json      # Exportable function-calling definitions
+└── deploy/                          # Deployment & Hardware Initialization
     ├── systemd/
-    │   ├── hlidskjalf-core.service   # Background daemons (RPC, MCP, Yggdrasil)
-    │   └── hlidskjalf-hud.service    # Graphics engine launch unit
-    ├── install_pi5_dependencies.sh   # Debian package bootstrap script
-    └── setup_hailo10_pcie.sh         # PCIe Gen 3 setup & HailoRT compiler
+    │   ├── hlidskjalf-core.service  # Background daemons (RPC, MCP, Yggdrasil)
+    │   └── hlidskjalf-hud.service   # Graphics engine launch unit
+    ├── install_pi5_dependencies.sh  # Debian package bootstrap script
+    └── setup_hailo10_pcie.sh        # PCIe Gen 3 setup & HailoRT compiler
+```
 
 ---
 
 ## 6. Subsystem Deep-Dives & Source Implementations
 
-### 6.1 Services Gateway: services/gateway/rpc_server.py
-The unified entry point on the Raspberry Pi 5. Implements JSON-RPC 2.0 and the Model Context Protocol (MCP) server over port 8000, exposing all Yggdrasil primitives.
+### 6.1 Services Gateway: `services/gateway/rpc_server.py`
+
+The unified entry point on the Raspberry Pi 5. Implements JSON-RPC 2.0 and the Model Context Protocol (MCP) server over port `8000`, exposing all Yggdrasil primitives.
+
+```python
 #!/usr/bin/env python3
 """
 services/gateway/rpc_server.py
@@ -234,6 +620,7 @@ wyrd = WyrdWorldModel()
 seidr = SeidrEngine()
 sandbox = MythicSandbox(DATA_DIR / "sandbox")
 draupnir = DraupnirForge(sandbox)
+
 
 class HeimdallGatewayHandler(BaseHTTPRequestHandler):
     def _send_json(self, status_code: int, data: Dict[str, Any]):
@@ -277,18 +664,37 @@ class HeimdallGatewayHandler(BaseHTTPRequestHandler):
                     params["content"],
                     params.get("metadata")
                 )
-                result = {"stored": True, "artifact_id": art_id, "key": params["key"]}
-                dispatch_hud_telemetry("system.thought", {"text": f"Kista stored: {params['key']}"})
+                result = {
+                    "stored": True,
+                    "artifact_id": art_id,
+                    "key": params["key"]
+                }
+                dispatch_hud_telemetry(
+                    "system.thought",
+                    {"text": f"Kista stored: {params['key']}"}
+                )
 
             elif method == "kista.retrieve":
                 res = kista.retrieve(params["key"])
-                result = res if res else {"found": False, "key": params["key"]}
+                result = res if res else {
+                    "found": False,
+                    "key": params["key"]
+                }
 
             # --- WYRD CAUSAL WORLD MODEL ---
             elif method == "wyrd.update_entity":
-                wyrd.update_entity(params["entity_id"], params.get("attributes", {}))
-                result = {"updated": True, "entity_id": params["entity_id"]}
-                dispatch_hud_telemetry("system.thought", {"text": f"WYRD state update: {params['entity_id']}"})
+                wyrd.update_entity(
+                    params["entity_id"],
+                    params.get("attributes", {})
+                )
+                result = {
+                    "updated": True,
+                    "entity_id": params["entity_id"]
+                }
+                dispatch_hud_telemetry(
+                    "system.thought",
+                    {"text": f"WYRD state update: {params['entity_id']}"}
+                )
 
             elif method == "wyrd.get_state":
                 result = wyrd.get_snapshot()
@@ -301,40 +707,99 @@ class HeimdallGatewayHandler(BaseHTTPRequestHandler):
                     float(params.get("intuition_weight", 0.5))
                 )
                 result = sim
-                dispatch_hud_telemetry("divination.sim_update", sim, speech=f"Seidr analysis: {sim['verdict']}")
+                dispatch_hud_telemetry(
+                    "divination.sim_update",
+                    sim,
+                    speech=f"Seidr analysis: {sim['verdict']}"
+                )
 
             # --- MYTHIC CODER EXECUTION ---
             elif method == "coder.execute":
-                exec_res = sandbox.execute(params["command"], timeout=int(params.get("timeout", 30)))
+                exec_res = sandbox.execute(
+                    params["command"],
+                    timeout=int(params.get("timeout", 30))
+                )
                 result = exec_res
-                dispatch_hud_telemetry("system.thought", {"text": f"CLI Exec: {params['command'][:30]}..."})
+                dispatch_hud_telemetry(
+                    "system.thought",
+                    {"text": f"CLI Exec: {params['command'][:30]}..."}
+                )
 
             # --- DRAUPNIR SUB-AGENT FORGE ---
             elif method == "draupnir.spawn":
-                spawn_res = draupnir.spawn_worker(params["task_name"], params["code"])
+                spawn_res = draupnir.spawn_worker(
+                    params["task_name"],
+                    params["code"]
+                )
                 result = spawn_res
-                dispatch_hud_telemetry("system.thought", {"text": f"Draupnir sub-agent dispatched: {params['task_name']}"})
+                dispatch_hud_telemetry(
+                    "system.thought",
+                    {
+                        "text":
+                        f"Draupnir sub-agent dispatched: "
+                        f"{params['task_name']}"
+                    }
+                )
 
             # --- MCP DISCOVERY CAPABILITY ---
             elif method == "tools.list":
                 result = {
                     "tools": [
-                        {"name": "kista.store", "description": "Persist memory or code artifact to long-term storage."},
-                        {"name": "kista.retrieve", "description": "Retrieve stored artifact by key."},
-                        {"name": "wyrd.update_entity", "description": "Update entity state in the causal world model graph."},
-                        {"name": "wyrd.get_state", "description": "Retrieve active world model state and causality."},
-                        {"name": "seidr.simulate", "description": "Run a heuristic and probabilistic outcome forecast."},
-                        {"name": "coder.execute", "description": "Execute sandboxed bash/python tasks on the Pi 5."},
-                        {"name": "draupnir.spawn", "description": "Spawn an autonomous sub-agent script on the edge."}
+                        {
+                            "name": "kista.store",
+                            "description":
+                            "Persist memory or code artifact to long-term storage."
+                        },
+                        {
+                            "name": "kista.retrieve",
+                            "description":
+                            "Retrieve stored artifact by key."
+                        },
+                        {
+                            "name": "wyrd.update_entity",
+                            "description":
+                            "Update entity state in the causal world model graph."
+                        },
+                        {
+                            "name": "wyrd.get_state",
+                            "description":
+                            "Retrieve active world model state and causality."
+                        },
+                        {
+                            "name": "seidr.simulate",
+                            "description":
+                            "Run a heuristic and probabilistic outcome forecast."
+                        },
+                        {
+                            "name": "coder.execute",
+                            "description":
+                            "Execute sandboxed bash/python tasks on the Pi 5."
+                        },
+                        {
+                            "name": "draupnir.spawn",
+                            "description":
+                            "Spawn an autonomous sub-agent script on the edge."
+                        }
                     ]
                 }
+
             else:
-                error = {"code": -32601, "message": f"Method '{method}' not implemented."}
+                error = {
+                    "code": -32601,
+                    "message": f"Method '{method}' not implemented."
+                }
 
         except Exception as ex:
-            error = {"code": -32000, "message": str(ex)}
+            error = {
+                "code": -32000,
+                "message": str(ex)
+            }
 
-        response = {"jsonrpc": "2.0", "id": msg_id}
+        response = {
+            "jsonrpc": "2.0",
+            "id": msg_id
+        }
+
         if error:
             response["error"] = error
             self._send_json(500, response)
@@ -345,19 +810,32 @@ class HeimdallGatewayHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
+
 def serve_forever():
-    server = HTTPServer(("0.0.0.0", PORT), HeimdallGatewayHandler)
-    print(f"[Heimdall Gateway] Active and listening on port {PORT}")
+    server = HTTPServer(
+        ("0.0.0.0", PORT),
+        HeimdallGatewayHandler
+    )
+
+    print(
+        f"[Heimdall Gateway] Active and listening on port {PORT}"
+    )
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         server.shutdown()
 
+
 if __name__ == "__main__":
     serve_forever()
+```
 
-### 6.2 Himinbjörg Compositor: services/himinbjorg/compositor.py
-The hardware-accelerated 60 FPS visual compositor running on the Raspberry Pi 5. Renders Sagnaskemma TTRPG combat/lore states, the 360° celestial wheel, tarot spreads, and live Muse reasoning.
+### 6.2 Himinbjörg Compositor: `services/himinbjorg/compositor.py`
+
+The hardware-accelerated 60 FPS visual compositor running on the Raspberry Pi 5. It renders Sagnaskemma TTRPG combat and lore states, the 360° celestial wheel, tarot spreads, and live Muse reasoning.
+
+```python
 #!/usr/bin/env python3
 """
 services/himinbjorg/compositor.py
@@ -372,6 +850,7 @@ import threading
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Dict, Any, List
+
 import pygame
 
 CANVAS_W, CANVAS_H = 1920, 1080
@@ -390,6 +869,7 @@ C_TXT = (240, 243, 250)
 C_MUTED = (145, 155, 175)
 
 state_mutex = threading.Lock()
+
 hud_state: Dict[str, Any] = {
     "mode": "divination",  # 'ttrpg' or 'divination'
     "status": "ONLINE",
@@ -398,13 +878,38 @@ hud_state: Dict[str, Any] = {
     "ttrpg": {
         "encounter": "Dolmen of the Iron Skald",
         "party": [
-            {"name": "Volmarr", "class": "Skald 5", "hp": 48, "max_hp": 48, "ac": 16},
-            {"name": "Astrid", "class": "Shieldmaiden", "hp": 46, "max_hp": 52, "ac": 18},
-            {"name": "Torin", "class": "Rune Weaver", "hp": 28, "max_hp": 34, "ac": 14}
+            {
+                "name": "Volmarr",
+                "class": "Skald 5",
+                "hp": 48,
+                "max_hp": 48,
+                "ac": 16
+            },
+            {
+                "name": "Astrid",
+                "class": "Shieldmaiden",
+                "hp": 46,
+                "max_hp": 52,
+                "ac": 18
+            },
+            {
+                "name": "Torin",
+                "class": "Rune Weaver",
+                "hp": 28,
+                "max_hp": 34,
+                "ac": 14
+            }
         ],
-        "lore": "The frost-carved lintel radiates cold phosphorescence. Ancient wards remain active.",
+        "lore":
+            "The frost-carved lintel radiates cold phosphorescence. "
+            "Ancient wards remain active.",
         "rolls": [
-            {"roller": "Volmarr", "dice": "1d20+7", "total": 24, "detail": "Arcana"}
+            {
+                "roller": "Volmarr",
+                "dice": "1d20+7",
+                "total": 24,
+                "detail": "Arcana"
+            }
         ]
     },
     "divination": {
@@ -417,39 +922,69 @@ hud_state: Dict[str, Any] = {
             {"name": "Saturn", "sym": "♄", "lon": 345.8}
         ],
         "cards": [
-            {"title": "The Hierophant", "orient": "Upright", "kw": "Inner Tradition"},
-            {"title": "Wheel of Fortune", "orient": "Upright", "kw": "Inevitable Shift"},
-            {"title": "The Hermit", "orient": "Upright", "kw": "Lantern of Wisdom"}
+            {
+                "title": "The Hierophant",
+                "orient": "Upright",
+                "kw": "Inner Tradition"
+            },
+            {
+                "title": "Wheel of Fortune",
+                "orient": "Upright",
+                "kw": "Inevitable Shift"
+            },
+            {
+                "title": "The Hermit",
+                "orient": "Upright",
+                "kw": "Lantern of Wisdom"
+            }
         ]
     }
 }
 
+
 class TelemetryReceiver(BaseHTTPRequestHandler):
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
+
         if length == 0:
             self.send_response(400)
             self.end_headers()
             return
 
-        body = json.loads(self.rfile.read(length).decode("utf-8"))
+        body = json.loads(
+            self.rfile.read(length).decode("utf-8")
+        )
+
         evt_type = body.get("event_type", "")
         payload = body.get("payload", {})
 
         with state_mutex:
             if "ttrpg" in evt_type:
                 hud_state["mode"] = "ttrpg"
-                for k in ["encounter", "party", "lore", "rolls"]:
+
+                for k in [
+                    "encounter",
+                    "party",
+                    "lore",
+                    "rolls"
+                ]:
                     if k in payload:
                         hud_state["ttrpg"][k] = payload[k]
+
             elif "divination" in evt_type:
                 hud_state["mode"] = "divination"
-                for k in ["ascendant", "planets", "cards"]:
+
+                for k in [
+                    "ascendant",
+                    "planets",
+                    "cards"
+                ]:
                     if k in payload:
                         hud_state["divination"][k] = payload[k]
 
             if "speech" in payload:
                 hud_state["speech"] = payload["speech"]
+
             if "thought" in payload:
                 hud_state["thought"] = payload["thought"]
 
@@ -459,125 +994,462 @@ class TelemetryReceiver(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
+
 def start_receiver():
-    server = HTTPServer(("0.0.0.0", 8080), TelemetryReceiver)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    server = HTTPServer(
+        ("0.0.0.0", 8080),
+        TelemetryReceiver
+    )
+
+    threading.Thread(
+        target=server.serve_forever,
+        daemon=True
+    ).start()
+
 
 def render_wheel(surface, fonts, data, center, radius):
     cx, cy = center
     asc = data.get("ascendant", 0.0)
 
     # Housing Rings
-    pygame.draw.circle(surface, C_PANEL, (cx, cy), radius)
-    pygame.draw.circle(surface, C_PURPLE, (cx, cy), radius, 2)
-    pygame.draw.circle(surface, C_BORDER, (cx, cy), int(radius * 0.72), 1)
-    pygame.draw.circle(surface, C_PANEL, (cx, cy), int(radius * 0.35))
-    pygame.draw.circle(surface, C_BORDER, (cx, cy), int(radius * 0.35), 1)
+    pygame.draw.circle(
+        surface,
+        C_PANEL,
+        (cx, cy),
+        radius
+    )
+
+    pygame.draw.circle(
+        surface,
+        C_PURPLE,
+        (cx, cy),
+        radius,
+        2
+    )
+
+    pygame.draw.circle(
+        surface,
+        C_BORDER,
+        (cx, cy),
+        int(radius * 0.72),
+        1
+    )
+
+    pygame.draw.circle(
+        surface,
+        C_PANEL,
+        (cx, cy),
+        int(radius * 0.35)
+    )
+
+    pygame.draw.circle(
+        surface,
+        C_BORDER,
+        (cx, cy),
+        int(radius * 0.35),
+        1
+    )
 
     # Houses (30° divisions)
     for i in range(12):
-        rad = math.radians((180.0 - (i * 30.0)) % 360.0)
-        x1, y1 = cx + radius * math.cos(rad), cy - radius * math.sin(rad)
-        x2, y2 = cx + int(radius * 0.35) * math.cos(rad), cy - int(radius * 0.35) * math.sin(rad)
-        pygame.draw.line(surface, C_BORDER, (x1, y1), (x2, y2), 1)
+        rad = math.radians(
+            (180.0 - (i * 30.0)) % 360.0
+        )
+
+        x1 = cx + radius * math.cos(rad)
+        y1 = cy - radius * math.sin(rad)
+
+        x2 = (
+            cx
+            + int(radius * 0.35)
+            * math.cos(rad)
+        )
+
+        y2 = (
+            cy
+            - int(radius * 0.35)
+            * math.sin(rad)
+        )
+
+        pygame.draw.line(
+            surface,
+            C_BORDER,
+            (x1, y1),
+            (x2, y2),
+            1
+        )
 
     # Planetary Positions & Aspect Lines
     coords = []
+
     for p in data.get("planets", []):
         delta = (p["lon"] - asc) % 360.0
-        rad = math.radians((180.0 - delta) % 360.0)
-        px = cx + (radius * 0.85) * math.cos(rad)
-        py = cy - (radius * 0.85) * math.sin(rad)
-        coords.append((px, py, p["lon"]))
 
-        pygame.draw.circle(surface, C_GOLD, (int(px), int(py)), 6)
-        sym = fonts["sym"].render(p.get("sym", "•"), True, C_GOLD)
-        surface.blit(sym, (px - 8, py - 24))
+        rad = math.radians(
+            (180.0 - delta) % 360.0
+        )
+
+        px = (
+            cx
+            + (radius * 0.85)
+            * math.cos(rad)
+        )
+
+        py = (
+            cy
+            - (radius * 0.85)
+            * math.sin(rad)
+        )
+
+        coords.append(
+            (px, py, p["lon"])
+        )
+
+        pygame.draw.circle(
+            surface,
+            C_GOLD,
+            (int(px), int(py)),
+            6
+        )
+
+        sym = fonts["sym"].render(
+            p.get("sym", "•"),
+            True,
+            C_GOLD
+        )
+
+        surface.blit(
+            sym,
+            (px - 8, py - 24)
+        )
 
     # Calculate Harmonic Aspects
     for i in range(len(coords)):
         for j in range(i + 1, len(coords)):
             x1, y1, l1 = coords[i]
             x2, y2, l2 = coords[j]
+
             diff = abs(l1 - l2) % 360.0
+
             if diff > 180.0:
                 diff = 360.0 - diff
 
             if abs(diff - 120.0) <= 4.0:
-                pygame.draw.line(surface, C_BLUE, (x1, y1), (x2, y2), 2)
+                pygame.draw.line(
+                    surface,
+                    C_BLUE,
+                    (x1, y1),
+                    (x2, y2),
+                    2
+                )
+
             elif abs(diff - 90.0) <= 4.0:
-                pygame.draw.line(surface, C_RED, (x1, y1), (x2, y2), 2)
+                pygame.draw.line(
+                    surface,
+                    C_RED,
+                    (x1, y1),
+                    (x2, y2),
+                    2
+                )
+
             elif abs(diff - 180.0) <= 4.0:
-                pygame.draw.line(surface, C_PURPLE, (x1, y1), (x2, y2), 2)
+                pygame.draw.line(
+                    surface,
+                    C_PURPLE,
+                    (x1, y1),
+                    (x2, y2),
+                    2
+                )
+
 
 def render_hud_loop():
     pygame.init()
-    screen = pygame.display.set_mode((CANVAS_W, CANVAS_H), pygame.DOUBLEBUF | pygame.HWSURFACE)
-    pygame.display.set_caption("Himinbjörg Omni-HUD")
+
+    screen = pygame.display.set_mode(
+        (CANVAS_W, CANVAS_H),
+        pygame.DOUBLEBUF | pygame.HWSURFACE
+    )
+
+    pygame.display.set_caption(
+        "Himinbjörg Omni-HUD"
+    )
+
     clock = pygame.time.Clock()
 
     fonts = {
-        "sym": pygame.font.SysFont("DejaVu Sans, Arial Unicode MS", 32),
-        "bold": pygame.font.SysFont("DejaVu Sans, Arial", 20, bold=True),
-        "med": pygame.font.SysFont("DejaVu Sans, Arial", 16),
-        "small": pygame.font.SysFont("DejaVu Sans, Arial", 13)
+        "sym":
+            pygame.font.SysFont(
+                "DejaVu Sans, Arial Unicode MS",
+                32
+            ),
+        "bold":
+            pygame.font.SysFont(
+                "DejaVu Sans, Arial",
+                20,
+                bold=True
+            ),
+        "med":
+            pygame.font.SysFont(
+                "DejaVu Sans, Arial",
+                16
+            ),
+        "small":
+            pygame.font.SysFont(
+                "DejaVu Sans, Arial",
+                13
+            )
     }
 
     start_receiver()
 
     running = True
+
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+            if (
+                event.type == pygame.QUIT
+                or (
+                    event.type == pygame.KEYDOWN
+                    and event.key == pygame.K_ESCAPE
+                )
+            ):
                 running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+
+            elif (
+                event.type == pygame.KEYDOWN
+                and event.key == pygame.K_TAB
+            ):
                 with state_mutex:
-                    hud_state["mode"] = "ttrpg" if hud_state["mode"] == "divination" else "divination"
+                    hud_state["mode"] = (
+                        "ttrpg"
+                        if hud_state["mode"] == "divination"
+                        else "divination"
+                    )
 
         screen.fill(C_BG)
 
         with state_mutex:
-            snap = json.loads(json.dumps(hud_state))
+            snap = json.loads(
+                json.dumps(hud_state)
+            )
 
         # 1. Header Bar
-        pygame.draw.rect(screen, C_PANEL, (0, 0, CANVAS_W, 64))
-        pygame.draw.line(screen, C_BORDER, (0, 64), (CANVAS_W, 64), 2)
+        pygame.draw.rect(
+            screen,
+            C_PANEL,
+            (0, 0, CANVAS_W, 64)
+        )
 
-        hdr_title = "HLIÐSKJÁLF :: " + ("DIVINATION & TRANSIT MATRIX" if snap["mode"] == "divination" else "SAGNASKEMMA TTRPG")
-        hdr_color = C_PURPLE if snap["mode"] == "divination" else C_BLUE
-        screen.blit(fonts["bold"].render(hdr_title, True, hdr_color), (28, 20))
-        screen.blit(fonts["small"].render(f"STATUS: {snap['status']}", True, C_GREEN), (CANVAS_W - 220, 24))
+        pygame.draw.line(
+            screen,
+            C_BORDER,
+            (0, 64),
+            (CANVAS_W, 64),
+            2
+        )
+
+        hdr_title = (
+            "HLIÐSKJÁLF :: "
+            + (
+                "DIVINATION & TRANSIT MATRIX"
+                if snap["mode"] == "divination"
+                else "SAGNASKEMMA TTRPG"
+            )
+        )
+
+        hdr_color = (
+            C_PURPLE
+            if snap["mode"] == "divination"
+            else C_BLUE
+        )
+
+        screen.blit(
+            fonts["bold"].render(
+                hdr_title,
+                True,
+                hdr_color
+            ),
+            (28, 20)
+        )
+
+        screen.blit(
+            fonts["small"].render(
+                f"STATUS: {snap['status']}",
+                True,
+                C_GREEN
+            ),
+            (CANVAS_W - 220, 24)
+        )
 
         # 2. Main Viewport
-        body_rect = pygame.Rect(28, 88, CANVAS_W - 56, CANVAS_H - 268)
+        body_rect = pygame.Rect(
+            28,
+            88,
+            CANVAS_W - 56,
+            CANVAS_H - 268
+        )
+
         if snap["mode"] == "divination":
-            center = (body_rect.left + 360, body_rect.centery)
-            render_wheel(screen, fonts, snap["divination"], center, radius=300)
+            center = (
+                body_rect.left + 360,
+                body_rect.centery
+            )
+
+            render_wheel(
+                screen,
+                fonts,
+                snap["divination"],
+                center,
+                radius=300
+            )
 
             # Tarot Section
-            cards = snap["divination"].get("cards", [])
-            card_bounds = pygame.Rect(body_rect.left + 740, body_rect.top, body_rect.width - 740, body_rect.height)
-            pygame.draw.rect(screen, C_PANEL, card_bounds, border_radius=12)
-            pygame.draw.rect(screen, C_BORDER, card_bounds, width=1, border_radius=12)
+            cards = (
+                snap["divination"]
+                .get("cards", [])
+            )
+
+            card_bounds = pygame.Rect(
+                body_rect.left + 740,
+                body_rect.top,
+                body_rect.width - 740,
+                body_rect.height
+            )
+
+            pygame.draw.rect(
+                screen,
+                C_PANEL,
+                card_bounds,
+                border_radius=12
+            )
+
+            pygame.draw.rect(
+                screen,
+                C_BORDER,
+                card_bounds,
+                width=1,
+                border_radius=12
+            )
 
             pad = 20
-            cw = (card_bounds.width - (len(cards) + 1) * pad) // max(len(cards), 1)
-            ch = card_bounds.height - (pad * 2)
+
+            cw = (
+                card_bounds.width
+                - (len(cards) + 1) * pad
+            ) // max(len(cards), 1)
+
+            ch = (
+                card_bounds.height
+                - (pad * 2)
+            )
 
             for i, c in enumerate(cards):
-                cr = pygame.Rect(card_bounds.left + pad + i * (cw + pad), card_bounds.top + pad, cw, ch)
-                pygame.draw.rect(screen, (25, 30, 45), cr, border_radius=8)
-                pygame.draw.rect(screen, C_PURPLE, cr, width=2, border_radius=8)
-                screen.blit(fonts["bold"].render(c["title"], True, C_TXT), (cr.left + 14, cr.top + 16))
-                screen.blit(fonts["small"].render(f"[{c['orient'].upper()}]", True, C_GREEN), (cr.left + 14, cr.top + 44))
-                screen.blit(fonts["med"].render(c["kw"], True, C_MUTED), (cr.left + 14, cr.bottom - 40))
+                cr = pygame.Rect(
+                    card_bounds.left
+                    + pad
+                    + i * (cw + pad),
+                    card_bounds.top + pad,
+                    cw,
+                    ch
+                )
+
+                pygame.draw.rect(
+                    screen,
+                    (25, 30, 45),
+                    cr,
+                    border_radius=8
+                )
+
+                pygame.draw.rect(
+                    screen,
+                    C_PURPLE,
+                    cr,
+                    width=2,
+                    border_radius=8
+                )
+
+                screen.blit(
+                    fonts["bold"].render(
+                        c["title"],
+                        True,
+                        C_TXT
+                    ),
+                    (
+                        cr.left + 14,
+                        cr.top + 16
+                    )
+                )
+
+                screen.blit(
+                    fonts["small"].render(
+                        f"[{c['orient'].upper()}]",
+                        True,
+                        C_GREEN
+                    ),
+                    (
+                        cr.left + 14,
+                        cr.top + 44
+                    )
+                )
+
+                screen.blit(
+                    fonts["med"].render(
+                        c["kw"],
+                        True,
+                        C_MUTED
+                    ),
+                    (
+                        cr.left + 14,
+                        cr.bottom - 40
+                    )
+                )
 
         # 3. Footer Stream
-        footer_rect = pygame.Rect(28, CANVAS_H - 160, CANVAS_W - 56, 136)
-        pygame.draw.rect(screen, C_PANEL, footer_rect, border_radius=12)
-        pygame.draw.rect(screen, C_BORDER, footer_rect, width=1, border_radius=12)
-        screen.blit(fonts["small"].render("MUSE NARRATIVE & SPEECH BUS", True, C_GOLD), (footer_rect.left + 24, footer_rect.top + 14))
-        screen.blit(fonts["med"].render(f'"{snap["speech"]}"', True, C_TXT), (footer_rect.left + 24, footer_rect.top + 42))
+        footer_rect = pygame.Rect(
+            28,
+            CANVAS_H - 160,
+            CANVAS_W - 56,
+            136
+        )
+
+        pygame.draw.rect(
+            screen,
+            C_PANEL,
+            footer_rect,
+            border_radius=12
+        )
+
+        pygame.draw.rect(
+            screen,
+            C_BORDER,
+            footer_rect,
+            width=1,
+            border_radius=12
+        )
+
+        screen.blit(
+            fonts["small"].render(
+                "MUSE NARRATIVE & SPEECH BUS",
+                True,
+                C_GOLD
+            ),
+            (
+                footer_rect.left + 24,
+                footer_rect.top + 14
+            )
+        )
+
+        screen.blit(
+            fonts["med"].render(
+                f'"{snap["speech"]}"',
+                True,
+                C_TXT
+            ),
+            (
+                footer_rect.left + 24,
+                footer_rect.top + 42
+            )
+        )
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -585,11 +1457,16 @@ def render_hud_loop():
     pygame.quit()
     sys.exit(0)
 
+
 if __name__ == "__main__":
     render_hud_loop()
+```
 
-### 6.3 Hailo Neural Worker: services/hailo/tts_worker.py
-Leverages the Hailo-10 AI2+ HAT's 40 TOPS NPU to run text-to-speech inference locally, streaming synthesized audio straight to ALSA without utilizing host workstation compute.
+### 6.3 Hailo Neural Worker: `services/hailo/tts_worker.py`
+
+Leverages the Hailo-10 AI2+ HAT's 40 TOPS NPU to run text-to-speech inference locally, streaming synthesized audio directly to ALSA without utilizing host workstation compute.
+
+```python
 #!/usr/bin/env python3
 """
 services/hailo/tts_worker.py
@@ -601,63 +1478,162 @@ import sys
 import os
 import time
 import subprocess
+
 import numpy as np
 
 try:
-    from hailo_platform import VDevice, HailoStreamInterface, ConfigureParams, InferVStreams
+    from hailo_platform import (
+        VDevice,
+        HailoStreamInterface,
+        ConfigureParams,
+        InferVStreams
+    )
     HAILO_NATIVE = True
+
 except ImportError:
     HAILO_NATIVE = False
 
 
 class HailoTTSWorker:
-    def __init__(self, hef_path: str = "/opt/hlidskjalf/models/tts_kokoro_hailo10.hef"):
+    def __init__(
+        self,
+        hef_path: str =
+        "/opt/hlidskjalf/models/tts_kokoro_hailo10.hef"
+    ):
         self.hef_path = hef_path
         self.initialized = False
 
-        if HAILO_NATIVE and os.path.exists(self.hef_path):
+        if (
+            HAILO_NATIVE
+            and os.path.exists(self.hef_path)
+        ):
             self._init_hailo_hardware()
+
         else:
-            sys.stderr.write("[Hailo TTS] Native HEF model not found. Defaulting to system fallback.\n")
+            sys.stderr.write(
+                "[Hailo TTS] Native HEF model not found. "
+                "Defaulting to system fallback.\n"
+            )
 
     def _init_hailo_hardware(self):
         self.vdevice = VDevice()
-        self.hef = self.vdevice.create_hef(self.hef_path)
-        params = ConfigureParams.create_from_hef(self.hef, interface=HailoStreamInterface.PCIe)
-        self.net_group = self.vdevice.configure(self.hef, params)[0]
-        self.vstream_params = self.net_group.create_params()
+
+        self.hef = self.vdevice.create_hef(
+            self.hef_path
+        )
+
+        params = ConfigureParams.create_from_hef(
+            self.hef,
+            interface=HailoStreamInterface.PCIe
+        )
+
+        self.net_group = self.vdevice.configure(
+            self.hef,
+            params
+        )[0]
+
+        self.vstream_params = (
+            self.net_group.create_params()
+        )
+
         self.initialized = True
-        sys.stderr.write("[Hailo TTS] PCIe Gen 3 connection locked. Hailo-10 NPU active.\n")
+
+        sys.stderr.write(
+            "[Hailo TTS] PCIe Gen 3 connection locked. "
+            "Hailo-10 NPU active.\n"
+        )
 
     def synthesize(self, text: str):
         if not text.strip():
             return
 
         if not self.initialized:
-            # Fallback to local system synthesizer if HEF is unmounted
-            subprocess.run(["espeak-ng", "-s", "145", "-p", "35", text], stderr=subprocess.DEVNULL)
+            subprocess.run(
+                [
+                    "espeak-ng",
+                    "-s",
+                    "145",
+                    "-p",
+                    "35",
+                    text
+                ],
+                stderr=subprocess.DEVNULL
+            )
             return
 
         # Tokenize and format tensor for the NPU input stream
-        tokens = np.array([ord(c) for c in text[:128]], dtype=np.int64)
-        tokens = np.pad(tokens, (0, 128 - len(tokens)), mode='constant')
-        in_feed = {self.net_group.get_input_stream_names()[0]: np.expand_dims(tokens, axis=0)}
+        tokens = np.array(
+            [ord(c) for c in text[:128]],
+            dtype=np.int64
+        )
 
-        with InferVStreams(self.net_group, self.vstream_params) as pipeline:
-            out = pipeline.infer(in_feed)
-            out_key = self.net_group.get_output_stream_names()[0]
-            raw_pcm = (out[out_key].squeeze() * 32767).astype(np.int16)
+        tokens = np.pad(
+            tokens,
+            (0, 128 - len(tokens)),
+            mode="constant"
+        )
 
-            # Stream PCM straight to ALSA default device
-            proc = subprocess.Popen(["aplay", "-r", "22050", "-f", "S16_LE", "-t", "raw", "-q"], stdin=subprocess.PIPE)
-            proc.communicate(raw_pcm.tobytes())
+        in_feed = {
+            self.net_group
+            .get_input_stream_names()[0]:
+            np.expand_dims(
+                tokens,
+                axis=0
+            )
+        }
+
+        with InferVStreams(
+            self.net_group,
+            self.vstream_params
+        ) as pipeline:
+            out = pipeline.infer(
+                in_feed
+            )
+
+            out_key = (
+                self.net_group
+                .get_output_stream_names()[0]
+            )
+
+            raw_pcm = (
+                out[out_key].squeeze()
+                * 32767
+            ).astype(np.int16)
+
+            # Stream PCM directly to ALSA default device
+            proc = subprocess.Popen(
+                [
+                    "aplay",
+                    "-r",
+                    "22050",
+                    "-f",
+                    "S16_LE",
+                    "-t",
+                    "raw",
+                    "-q"
+                ],
+                stdin=subprocess.PIPE
+            )
+
+            proc.communicate(
+                raw_pcm.tobytes()
+            )
+
 
 if __name__ == "__main__":
     worker = HailoTTSWorker()
-    worker.synthesize("Hliðskjálf edge core online. All sub-agents report nominal status.")
 
-### 6.4 Host Integration: client/harvester.py
-Runs on Muse's host computer to capture headless CLI execution from Sagnaskemma and astrology-engine, automatically dispatching structured payloads to the Raspberry Pi 5.
+    worker.synthesize(
+        "Hliðskjálf edge core online. "
+        "All sub-agents report nominal status."
+    )
+```
+
+### 6.4 Host Integration: `client/harvester.py`
+
+Runs on Muse's host computer to capture headless CLI execution from Sagnaskemma and the astrology engine, automatically dispatching structured payloads to the Raspberry Pi 5.
+
+```python
 #!/usr/bin/env python3
 """
 client/harvester.py
@@ -673,8 +1649,13 @@ import argparse
 import subprocess
 import urllib.request
 
-PI_HOST = os.getenv("HLIDSKJALF_PI_IP", "192.168.1.150")
+PI_HOST = os.getenv(
+    "HLIDSKJALF_PI_IP",
+    "192.168.1.150"
+)
+
 HUD_URL = f"http://{PI_HOST}:8080"
+
 
 def harvest_sagnaskemma(output: str):
     rolls = []
@@ -684,58 +1665,146 @@ def harvest_sagnaskemma(output: str):
 
     for line in output.splitlines():
         line = line.strip()
-        r_match = re.search(r"\[ROLL\]\s+([\w\s]+):\s+(\d+d\d+[\+\-\d]*)\s*=\s*(\d+)", line)
-        v_match = re.search(r"\[VITALS\]\s+([\w]+)\s+HP:(\d+)/(\d+)\s+AC:(\d+)", line)
-        e_match = re.search(r"\[ENCOUNTER\]\s+(.*)", line)
+
+        r_match = re.search(
+            r"ROLL\s+([\w\s]+):\s+"
+            r"(\d+d\d+[\+\-\d]*)\s*=\s*(\d+)",
+            line
+        )
+
+        v_match = re.search(
+            r"VITALS\s+([\w]+)\s+"
+            r"HP:(\d+)/(\d+)\s+AC:(\d+)",
+            line
+        )
+
+        e_match = re.search(
+            r"ENCOUNTER\s+(.*)",
+            line
+        )
 
         if r_match:
-            rolls.append({"roller": r_match.group(1), "dice": r_match.group(2), "total": int(r_match.group(3))})
+            rolls.append(
+                {
+                    "roller": r_match.group(1),
+                    "dice": r_match.group(2),
+                    "total": int(r_match.group(3))
+                }
+            )
+
         elif v_match:
-            party.append({"name": v_match.group(1), "hp": int(v_match.group(2)), "max_hp": int(v_match.group(3)), "ac": int(v_match.group(4))})
+            party.append(
+                {
+                    "name": v_match.group(1),
+                    "hp": int(v_match.group(2)),
+                    "max_hp": int(v_match.group(3)),
+                    "ac": int(v_match.group(4))
+                }
+            )
+
         elif e_match:
             encounter = e_match.group(1)
-        elif line and not line.startswith("#"):
+
+        elif (
+            line
+            and not line.startswith("#")
+        ):
             lore.append(line)
 
     return {
-        "event_type": "ttrpg.combat_state",
+        "event_type":
+            "ttrpg.combat_state",
         "payload": {
-            "encounter": encounter,
-            "party": party,
-            "rolls": rolls,
-            "lore": "\n".join(lore)
+            "encounter":
+                encounter,
+            "party":
+                party,
+            "rolls":
+                rolls,
+            "lore":
+                "\n".join(lore)
         }
     }
 
 
 def send_payload(payload: dict):
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(HUD_URL, data=data, headers={"Content-Type": "application/json"})
+    data = json.dumps(
+        payload
+    ).encode("utf-8")
+
+    req = urllib.request.Request(
+        HUD_URL,
+        data=data,
+        headers={
+            "Content-Type":
+                "application/json"
+        }
+    )
+
     try:
-        with urllib.request.urlopen(req, timeout=2.0) as resp:
+        with urllib.request.urlopen(
+            req,
+            timeout=2.0
+        ):
             pass
+
     except Exception as ex:
-        sys.stderr.write(f"[Harvester Error] Failed to reach Pi 5: {ex}\n")
+        sys.stderr.write(
+            "[Harvester Error] "
+            f"Failed to reach Pi 5: {ex}\n"
+        )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cmd", required=True, help="Command to run headlessly")
+
+    parser.add_argument(
+        "--cmd",
+        required=True,
+        help="Command to run headlessly"
+    )
+
     args = parser.parse_args()
 
-    proc = subprocess.run(args.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    proc = subprocess.run(
+        args.cmd,
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+
     if proc.returncode == 0:
-        event = harvest_sagnaskemma(proc.stdout)
-        send_payload(event)
+        event = harvest_sagnaskemma(
+            proc.stdout
+        )
+
+        send_payload(
+            event
+        )
+```
 
 ---
 
 ## 7. Model Context Protocol (MCP) Manifest
-Muse auto-discovers edge tools via the Model Context Protocol. Place this file inside Muse’s tool configuration folder (muse_tool_manifest.json):
+
+Muse auto-discovers edge tools through the Model Context Protocol.
+
+Place the following configuration inside:
+
+```text
+muse_tool_manifest.json
+```
+
+```json
 {
   "mcpServers": {
     "hlidskjalf_edge": {
       "command": "python3",
-      "args": ["-m", "client.mcp_bridge"],
+      "args": [
+        "-m",
+        "client.mcp_bridge"
+      ],
       "env": {
         "HLIDSKJALF_ENDPOINT": "http://192.168.1.150:8000"
       },
@@ -751,18 +1820,31 @@ Muse auto-discovers edge tools via the Model Context Protocol. Place this file i
     }
   }
 }
+```
 
 ---
 
 ## 8. Deployment, Systemd Units & Verification
 
-### 8.1 Base OS Bootstrap (deploy/install_pi5_dependencies.sh)
+### 8.1 Base OS Bootstrap
+
+File:
+
+```text
+deploy/install_pi5_dependencies.sh
+```
+
 Execute on the Raspberry Pi 5 to prepare the runtime environment:
+
+```bash
 #!/usr/bin/env bash
+
 set -e
 
 echo "=== Initializing Hliðskjálf Edge Runtime Dependencies ==="
+
 sudo apt-get update
+
 sudo apt-get install -y \
     python3-pip \
     python3-pygame \
@@ -775,16 +1857,32 @@ sudo apt-get install -y \
     sqlite3
 
 # Install Hailo-10 PCIe Driver & Runtime
-sudo apt-get install -y dkms hailo-all hailo-pci
+sudo apt-get install -y \
+    dkms \
+    hailo-all \
+    hailo-pci
 
 sudo mkdir -p /opt/hlidskjalf/data/sandbox
 sudo mkdir -p /opt/hlidskjalf/models
-sudo chown -R $USER:$USER /opt/hlidskjalf
+
+sudo chown -R "$USER":"$USER" /opt/hlidskjalf
 
 echo "=== Environment configured. Please reboot if PCIe drivers were updated. ==="
+```
 
-### 8.2 Systemd Core Service: /etc/systemd/system/hlidskjalf-core.service
-Ensures the Heimdall Gateway and Yggdrasil daemon start on boot:
+---
+
+### 8.2 Systemd Core Service
+
+File:
+
+```text
+/etc/systemd/system/hlidskjalf-core.service
+```
+
+Ensures the Heimdall Gateway and Yggdrasil daemon start automatically on boot.
+
+```ini
 [Unit]
 Description=Project Hliðskjálf Edge Core (RPC & Yggdrasil)
 After=network.target
@@ -801,9 +1899,21 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
+```
 
-### 8.3 Systemd HUD Service: /etc/systemd/system/hlidskjalf-hud.service
-Launches the Himinbjörg 60 FPS graphics display on the desktop terminal:
+---
+
+### 8.3 Systemd HUD Service
+
+File:
+
+```text
+/etc/systemd/system/hlidskjalf-hud.service
+```
+
+Launches the Himinbjörg 60 FPS graphics display on the desktop terminal.
+
+```ini
 [Unit]
 Description=Project Hliðskjálf Himinbjörg Visual HUD Compositor
 After=hlidskjalf-core.service graphical.target
@@ -821,15 +1931,30 @@ RestartSec=5
 
 [Install]
 WantedBy=graphical.target
+```
+
+---
 
 ### 8.4 Verification Commands
-Test each subsystem over the network:
-# 1. Verify Heimdall Gateway & Tool Discovery
+
+Test each subsystem over the network.
+
+#### 1. Verify Heimdall Gateway & Tool Discovery
+
+```bash
 curl -X POST http://<PI_IP>:8000 \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "method": "tools.list", "params": {}, "id": 1}'
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools.list",
+    "params": {},
+    "id": 1
+  }'
+```
 
-# 2. Test Storing Artifact in Kista Vault
+#### 2. Test Storing an Artifact in the Kista Vault
+
+```bash
 curl -X POST http://<PI_IP>:8000 \
   -H "Content-Type: application/json" \
   -d '{
@@ -842,8 +1967,11 @@ curl -X POST http://<PI_IP>:8000 \
     },
     "id": 2
   }'
+```
 
-# 3. Test Direct Telemetry Injection to Himinbjörg HUD
+#### 3. Test Direct Telemetry Injection to the Himinbjörg HUD
+
+```bash
 curl -X POST http://<PI_IP>:8080 \
   -H "Content-Type: application/json" \
   -d '{
@@ -853,22 +1981,28 @@ curl -X POST http://<PI_IP>:8080 \
       "thought": "Sun trine Jupiter confirms positive momentum."
     }
   }'
+```
 
 ---
 
 ## 9. License
-This project is licensed under the Apache License, Version 2.0.
-Copyright 2026 RuneForgeAI / Volmarr
 
+This project is licensed under the **Apache License, Version 2.0**.
+
+**Copyright © 2026 RuneForgeAI / Volmarr**
+
+```text
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at:
+
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
 See the License for the specific language governing permissions and
 limitations under the License.
-
+```
