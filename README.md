@@ -12,6 +12,10 @@ Hliðskjálf-Edge-Core is an edge co-processor and real-time HUD for Meta Muse o
 
 ---
 
+![https://github.com/hrabanazviking/RuneForgeAI-Project-Hlidhskjalf/blob/main/1791351965257.jpg](https://github.com/hrabanazviking/RuneForgeAI-Project-Hlidhskjalf/blob/main/1791351965257.jpg)
+
+---
+
 ##1. System Vision & Architecture
 Project Hliðskjálf establishes a Split-Brain Asynchronous Edge Architecture. High-parameter reasoning, multi-step planning, and agent conversational loops execute on Meta Muse's primary host workstation. Concurrently, the physical edge terminal—a Raspberry Pi 5 (16GB RAM) equipped with a Hailo-10 AI2+ M.2 HAT (8GB dedicated LPDDR4X memory)—acts as an autonomous perceptual canvas, memory vault, and local cognitive co-processor.
 ┌────────────────────────────────────────────────────────────────────────┐
