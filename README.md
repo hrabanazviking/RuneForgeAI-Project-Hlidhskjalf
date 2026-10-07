@@ -152,46 +152,47 @@ where N_0 = 8 (max concurrent threads), \gamma = 0.5 (decay factor), C \in (0, 1
 ---
 
 ## 5. Directory Structure & Monorepo Layout
-hlidskjalf-edge-core/
+
+```text
 ├── LICENSE                          # Apache 2.0 Legal License
-├── README.md                         # Unified Architecture & Roadmap Documentation
-├── pyproject.toml                    # Poetry/Pip build configurations
-├── Makefile                          # Build, lint, and service control rules
+├── README.md                        # Unified Architecture & Roadmap Documentation
+├── pyproject.toml                   # Poetry/Pip build configurations
+├── Makefile                         # Build, lint, and service control rules
 ├── config/
-│   ├── default_config.yaml           # Ports, network addresses, display thresholds
-│   └── display_profiles.json         # Palette and window layout configuration
-├── protocol/                         # Wire Protocols & Cross-System Schemas
+│   ├── default_config.yaml          # Ports, network addresses, display thresholds
+│   └── display_profiles.json        # Palette and window layout configuration
+├── protocol/                        # Wire Protocols & Cross-System Schemas
 │   ├── __init__.py
-│   ├── envelope.py                   # Strict JSON Schema / MessagePack wrappers
+│   ├── envelope.py                  # Strict JSON Schema / MessagePack wrappers
 │   └── schemas/
-│       ├── ttrpg_event.json          # Sagnaskemma data contracts
-│       ├── divination_event.json     # Astrology/Tarot contracts
-│       └── yggdrasil_mcp.json        # MCP Tool invocation specifications
+│       ├── ttrpg_event.json         # Sagnaskemma data contracts
+│       ├── divination_event.json    # Astrology/Tarot contracts
+│       └── yggdrasil_mcp.json       # MCP Tool invocation specifications
 ├── services/
-│   ├── gateway/                      # Heimdall Security & Router
+│   ├── gateway/                     # Heimdall Security & Router
 │   │   ├── __init__.py
-│   │   ├── sentry.py                 # Parameter validation and rate limiter
-│   │   └── rpc_server.py             # JSON-RPC 2.0 / MCP Server (Port 8000)
-│   ├── himinbjorg/                   # Omni-HUD Visual Engine
+│   │   ├── sentry.py                # Parameter validation and rate limiter
+│   │   └── rpc_server.py            # JSON-RPC 2.0 / MCP Server (Port 8000)
+│   ├── himinbjorg/                  # Omni-HUD Visual Engine
 │   │   ├── __init__.py
-│   │   ├── compositor.py             # Pygame 60 FPS hardware loop (Port 8080)
-│   │   ├── canvas_ttrpg.py           # Sagnaskemma Party & Combat UI
-│   │   ├── canvas_divination.py      # 360° Celestial Wheel & Tarot spreads
-│   │   ├── canvas_system.py          # WYRD graph & resource monitor
-│   │   └── typography.py             # UTF-8 Runic & Astrological typography
-│   ├── yggdrasil/                    # Cognitive Co-Processor Modules
+│   │   ├── compositor.py            # Pygame 60 FPS hardware loop (Port 8080)
+│   │   ├── canvas_ttrpg.py          # Sagnaskemma Party & Combat UI
+│   │   ├── canvas_divination.py     # 360° Celestial Wheel & Tarot spreads
+│   │   ├── canvas_system.py         # WYRD graph & resource monitor
+│   │   └── typography.py            # UTF-8 Runic & Astrological typography
+│   ├── yggdrasil/                   # Cognitive Co-Processor Modules
 │   │   ├── __init__.py
-│   │   ├── memory/                   # Kista Vault & hermes-state SQLite WAL
+│   │   ├── memory/                  # Kista Vault & hermes-state SQLite WAL
 │   │   │   ├── kista_vault.py
 │   │   │   └── state_cache.py
-│   │   ├── world_model/              # WYRD Causal DAG & Verdandi Tracker
+│   │   ├── world_model/             # WYRD Causal DAG & Verdandi Tracker
 │   │   │   ├── wyrd_graph.py
 │   │   │   └── verdandi_time.py
-│   │   ├── simulation/               # Seidr Predictive Engine
+│   │   ├── simulation/              # Seidr Predictive Engine
 │   │   │   └── seidr_engine.py
-│   │   ├── subagents/                # Draupnir Recursive Worker Engine
+│   │   ├── subagents/               # Draupnir Recursive Worker Engine
 │   │   │   └── draupnir_forge.py
-│   │   └── sandbox/                  # Mythic Coder & Project A.E.S.I.R.
+│   │   └── sandbox/                 # Mythic Coder & Project A.E.S.I.R.
 │   │       ├── mythic_sandbox.py
 │   │       └── aesir_bindings.py
 │   └── hailo/                        # Hailo-10 AI2+ HAT Pipelines
@@ -209,6 +210,7 @@ hlidskjalf-edge-core/
     │   └── hlidskjalf-hud.service    # Graphics engine launch unit
     ├── install_pi5_dependencies.sh   # Debian package bootstrap script
     └── setup_hailo10_pcie.sh         # PCIe Gen 3 setup & HailoRT compiler
+```
 
 ---
 
