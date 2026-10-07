@@ -117,37 +117,431 @@ Hliðskjálf merges, synthesizes, and builds directly upon the following reposit
 ## 4. Mathematical Foundations
 
 ### 4.1 Celestial Coordinate Projection (Ephemeris to Canvas)
-To map astronomical longitude \lambda to screen coordinates on the Himinbjörg 360° celestial wheel, the Ascendant \lambda_{\text{ASC}} is anchored at the 9 o'clock horizon (\pi \text{ rad} = 180^\circ):
-Given center coordinates (x_c, y_c) and track radius R:
+
+To map astronomical longitude $\lambda$ to screen coordinates on the Himinbjörg 360° celestial wheel, the Ascendant $\lambda_{\mathrm{ASC}}$ is anchored at the 9 o'clock horizon $(\pi \text{ rad} = 180^\circ)$.
+
+Given center coordinates $(x_c, y_c)$ and track radius $R$, define the projected angular position:
+
+$$
+\theta =
+\left[
+\left(
+\lambda - \lambda_{\mathrm{ASC}}
+\right)
+\frac{\pi}{180}
+
++ \pi
+  \right]
+  \bmod 2\pi
+  $$
+
+The corresponding screen coordinates are:
+
+$$
+x = x_c + R\cos(\theta)
+$$
+
+$$
+y = y_c + R\sin(\theta)
+$$
+
+Thus, when $\lambda = \lambda_{\mathrm{ASC}}$:
+
+$$
+\theta = \pi
+$$
+
+and the Ascendant appears at the 9 o'clock horizon:
+
+$$
+(x,y) = (x_c - R,\ y_c)
+$$
+
+---
 
 ### 4.2 Aspect Separation & Harmonic Chords
-Geometric aspects between bodies p_1 and p_2 with longitudes \lambda_1, \lambda_2 are identified with an orb tolerance \epsilon = \pm 4^\circ:
 
- * Trine (120^\circ): \vert{} \delta - 120^\circ \vert{} \le 4^\circ \implies \text{Color: Astral Blue } (64, 134, 244)
- * Square (90^\circ): \vert{} \delta - 90^\circ \vert{} \le 4^\circ \implies \text{Color: Peril Red } (239, 68, 68)
- * Opposition (180^\circ): \vert{} \delta - 180^\circ \vert{} \le 4^\circ \implies \text{Color: Mystic Purple } (168, 85, 247)
+For two celestial bodies $p_1$ and $p_2$ with longitudes $\lambda_1$ and $\lambda_2$, first compute their raw angular separation:
+
+$$
+\Delta =
+\left|
+\lambda_1 - \lambda_2
+\right|
+$$
+
+The shortest angular separation on the 360° circle is:
+
+$$
+\delta =
+\min
+\left(
+\Delta,,
+360^\circ - \Delta
+\right)
+$$
+
+Aspect detection uses an orb tolerance of:
+
+$$
+\epsilon = \pm 4^\circ
+$$
+
+The primary harmonic aspects are:
+
+- Trine $(120^\circ)$
+
+$$
+\left|
+\delta - 120^\circ
+\right|
+\le 4^\circ
+\quad\Longrightarrow\quad
+\text{Astral Blue }(64,134,244)
+$$
+
+- Square $(90^\circ)$
+
+$$
+\left|
+\delta - 90^\circ
+\right|
+\le 4^\circ
+\quad\Longrightarrow\quad
+\text{Peril Red }(239,68,68)
+$$
+
+- Opposition $(180^\circ)$
+
+$$
+\left|
+\delta - 180^\circ
+\right|
+\le 4^\circ
+\quad\Longrightarrow\quad
+\text{Mystic Purple }(168,85,247)
+$$
+
+---
 
 ### 4.3 Chaldean Planetary Hours
-Let local sunrise be T_{\text{rise}} and sunset be T_{\text{set}} in decimal hours.
- * Diurnal Arc Duration: D_{\text{day}} = T_{\text{set}} - T_{\text{rise}} \implies \tau_{\text{day}} = \frac{D_{\text{day}}}{12}
- * Nocturnal Arc Duration: D_{\text{night}} = 24.0 - D_{\text{day}} \implies \tau_{\text{night}} = \frac{D_{\text{night}}}{12}
-Chaldean Sequence:
 
-Given Day of Week W \in [0, 6] (0 = \text{Sunday}), Day Ruler index R_W = [3, 6, 2, 5, 1, 4, 0][W].
-Ruling planet for hour index h \in [0, 11]:
+Let local sunrise be $T_{\mathrm{rise}}$ and sunset be $T_{\mathrm{set}}$, expressed in decimal hours.
+
+The duration of the diurnal arc is:
+
+$$
+D_{\mathrm{day}}
+
+T_{\mathrm{set}}
+
+T_{\mathrm{rise}}
+$$
+
+Each planetary hour during daylight has duration:
+
+$$
+\tau_{\mathrm{day}}
+
+\frac{D_{\mathrm{day}}}{12}
+$$
+
+The nocturnal arc duration is:
+
+$$
+D_{\mathrm{night}}
+
+24
+
+D_{\mathrm{day}}
+$$
+
+Each planetary hour during the night has duration:
+
+$$
+\tau_{\mathrm{night}}
+
+\frac{D_{\mathrm{night}}}{12}
+$$
+
+The Chaldean planetary sequence is:
+
+$$
+[
+\text{Saturn},
+\text{Jupiter},
+\text{Mars},
+\text{Sun},
+\text{Venus},
+\text{Mercury},
+\text{Moon}
+]
+$$
+
+Let the day of the week be:
+
+$$
+W \in {0,1,2,3,4,5,6}
+$$
+
+with:
+
+$$
+0 = \text{Sunday}
+$$
+
+The index of the planetary ruler for each weekday is:
+
+$$
+R_W =
+[3,6,2,5,1,4,0]_W
+$$
+
+For planetary-hour index:
+
+$$
+h \in {0,1,\ldots,11}
+$$
+
+the ruling planet index is:
+
+$$
+R(h,W)
+
+(R_W + h)
+\bmod 7
+$$
+
+For a continuous sequence extending through both day and night, the planetary ruler for absolute hour index $h$ is likewise:
+
+$$
+R(h,W)
+
+(R_W + h)
+\bmod 7
+$$
+
+where $h \in {0,1,\ldots,23}$.
+
+---
 
 ### 4.4 TTRPG Combat Probability PMF
-Discrete probability mass function for a standard d20 roll X \sim \text{Uniform}(1, 20):
- * Advantage: Y_{\text{adv}} = \max(X_1, X_2) \implies P(Y_{\text{adv}} = k) = \frac{2k - 1}{400}
- * Disadvantage: Y_{\text{dis}} = \min(X_1, X_2) \implies P(Y_{\text{dis}} = k) = \frac{41 - 2k}{400}
+
+For a standard d20 roll:
+
+$$
+X \sim \operatorname{Uniform}{1,2,\ldots,20}
+$$
+
+with:
+
+$$
+P(X=k)=\frac{1}{20}
+$$
+
+for:
+
+$$
+k \in {1,2,\ldots,20}
+$$
+
+Advantage
+
+For two independent d20 rolls $X_1$ and $X_2$:
+
+$$
+Y_{\mathrm{adv}}
+
+\max(X_1,X_2)
+$$
+
+The probability mass function is:
+
+$$
+P(Y_{\mathrm{adv}}=k)
+
+\frac{2k-1}{400}
+$$
+
+Disadvantage
+
+Likewise:
+
+$$
+Y_{\mathrm{dis}}
+
+\min(X_1,X_2)
+$$
+
+with probability mass function:
+
+$$
+P(Y_{\mathrm{dis}}=k)
+
+\frac{41-2k}{400}
+$$
+
+where:
+
+$$
+k \in {1,2,\ldots,20}
+$$
+
+---
 
 ### 4.5 Seidr Heuristic Blending Formulation
-Let \mathbf{S}_{\text{empirical}} \in \mathbb{R}^n represent deterministic metrics and \mathbf{S}_{\text{symbolic}} \in \mathbb{R}^m represent celestial and runic states. The blended probability of scenario outcome y under intuition weight \alpha \in [0, 1] is:
+
+Let:
+
+$$
+\mathbf{S}_{\mathrm{empirical}}
+\in
+\mathbb{R}^{n}
+$$
+
+represent deterministic or empirically derived system metrics, and let:
+
+$$
+\mathbf{S}_{\mathrm{symbolic}}
+\in
+\mathbb{R}^{m}
+$$
+
+represent celestial, divinatory, runic, or other symbolic state variables.
+
+Let the empirical evaluation function be:
+
+$$
+f_{\mathrm{emp}}
+\left(
+\mathbf{S}_{\mathrm{empirical}}
+\right)
+$$
+
+and the symbolic heuristic function be:
+
+$$
+f_{\mathrm{sym}}
+\left(
+\mathbf{S}_{\mathrm{symbolic}}
+\right)
+$$
+
+For intuition weight:
+
+$$
+\alpha \in [0,1]
+$$
+
+the blended Seidr scenario score is:
+
+$$
+S_y
+
+(1-\alpha)
+f_{\mathrm{emp}}
+\left(
+\mathbf{S}{\mathrm{empirical}}
+\right)
++
+\alpha
+f{\mathrm{sym}}
+\left(
+\mathbf{S}_{\mathrm{symbolic}}
+\right)
+$$
+
+If both component functions are normalized to the interval $[0,1]$, the blended probability of scenario outcome $y$ may be expressed directly as:
+
+$$
+P(y)
+
+(1-\alpha)
+P_{\mathrm{emp}}(y)
++
+\alpha
+P_{\mathrm{sym}}(y)
+$$
+
+where:
+
+- $\alpha = 0$ produces a fully empirical prediction.
+- $\alpha = 1$ produces a fully symbolic heuristic prediction.
+- $0 < \alpha < 1$ produces a hybrid Seidr inference.
+
+---
 
 ### 4.6 Draupnir Recursive Sub-Agent Scaling
-To prevent process thrashing, worker pool scaling decays exponentially with recursion depth d:
 
-where N_0 = 8 (max concurrent threads), \gamma = 0.5 (decay factor), C \in (0, 1] (task complexity factor), and recursion halts when N_{\text{workers}} < 1 or d \ge 3.
+To prevent process thrashing and uncontrolled recursive worker expansion, the available sub-agent pool decays exponentially with recursion depth $d$.
+
+Let:
+
+$$
+N_0 = 8
+$$
+
+be the maximum root-level concurrent worker count,
+
+$$
+\gamma = 0.5
+$$
+
+be the recursion decay factor, and:
+
+$$
+C \in (0,1]
+$$
+
+be the normalized task-complexity factor.
+
+The theoretical worker allocation at recursion depth $d$ is:
+
+$$
+N_{\mathrm{raw}}(d)
+
+N_0 C \gamma^d
+$$
+
+The executable integer worker count is:
+
+$$
+N_{\mathrm{workers}}(d)
+
+\left\lfloor
+N_0 C \gamma^d
+\right\rfloor
+$$
+
+Thus, for the default maximum-complexity case $C=1$:
+
+$$
+N_{\mathrm{workers}}(0)=8
+$$
+
+$$
+N_{\mathrm{workers}}(1)=4
+$$
+
+$$
+N_{\mathrm{workers}}(2)=2
+$$
+
+$$
+N_{\mathrm{workers}}(3)=1
+$$
+
+Recursive spawning halts when:
+
+$$
+N_{\mathrm{raw}}(d) < 1
+$$
+
+or when the maximum permitted recursion depth is reached:
+
+$$
+d \ge 3
+$$
 
 ---
 
