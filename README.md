@@ -20,6 +20,7 @@ Hliðskjálf-Edge-Core is an edge co-processor and real-time HUD for Meta Muse o
 Project Hliðskjálf establishes a Split-Brain Asynchronous Edge Architecture. High-parameter reasoning, multi-step planning, and agent conversational loops execute on Meta Muse's primary host workstation. Concurrently, the physical edge terminal—a Raspberry Pi 5 (16GB RAM) equipped with a Hailo-10 AI2+ M.2 HAT (8GB dedicated LPDDR4X memory)—acts as an autonomous perceptual canvas, memory vault, and local cognitive co-processor.
 flowchart TB
 
+```mermaid
     subgraph HOST["⚙ MUSE AGENT HOST — WORKSTATION"]
 
         MUSE["Meta Muse Agent Core<br/><b>Planner • Reasoning • Dialogue</b>"]
@@ -63,6 +64,8 @@ flowchart TB
     class HEIMDALL gateway;
     class HUD,YGG subsystem;
     class HAILO accelerator;
+
+```
 
 ---
 
