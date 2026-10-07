@@ -18,49 +18,51 @@ Hliðskjálf-Edge-Core is an edge co-processor and real-time HUD for Meta Muse o
 
 ##1. System Vision & Architecture
 Project Hliðskjálf establishes a Split-Brain Asynchronous Edge Architecture. High-parameter reasoning, multi-step planning, and agent conversational loops execute on Meta Muse's primary host workstation. Concurrently, the physical edge terminal—a Raspberry Pi 5 (16GB RAM) equipped with a Hailo-10 AI2+ M.2 HAT (8GB dedicated LPDDR4X memory)—acts as an autonomous perceptual canvas, memory vault, and local cognitive co-processor.
-┌────────────────────────────────────────────────────────────────────────┐
-│                   MUSE AGENT HOST (WORKSTATION)                        │
-│                                                                        │
-│   Meta Muse Agent Core (Planner / Reasoning Engine / Dialogue)         │
-│     │                                                                  │
-│     ├── Sagnaskemma Execution Harness (D&D / TTRPG CLI)                │
-│     ├── Astrology & Divination Headless Engine (Swiss Ephemeris)       │
-│     └── Model Context Protocol (MCP) Client / JSON-RPC Dispatcher      │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Bidirectional LAN Link (HTTP / WS / mTLS)
-                                    │ [Port 8000: MCP/RPC | Port 8080: HUD]
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│               RASPBERRY PI 5 (16GB) + HAILO-10 (8GB)                   │
-│                       PROJECT HLIÐSKJÁLF                               │
-│                                                                        │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                    HEIMDALL INGESTION GATEWAY                    │  │
-│  │     (Authentication, Schema Validation, IPC Dispatcher)          │  │
-│  └──────────────┬───────────────────────────────────┬───────────────┘  │
-│                 │                                   │                  │
-│                 ▼                                   ▼                  │
-│  ┌──────────────────────────────┐   ┌───────────────────────────────┐  │
-│  │     HIMINBJÖRG OMNI-HUD      │   │     YGGDRASIL CO-PROCESSOR    │  │
-│  │      (Visual Canvas)         │   │     (Autonomous Engine)       │  │
-│  │                              │   │                               │  │
-│  │ • 60 FPS Pygame/SDL2 Engine  │   │ • WYRD Causal World Graph     │  │
-│  │ • Sagnaskemma Party Vitals   │   │ • Verdandi Timeline Tracker   │  │
-│  │ • 360° Celestial Wheel       │   │ • Kista Artifact Memory Vault │  │
-│  │ • Real-time Tarot / Runes    │   │ • Seidr Heuristic Simulator   │  │
-│  │ • Dice Probability HUD       │   │ • Draupnir Sub-Agent Forge    │  │
-│  │ • Muse Thought/Speech Stream │   │ • Mythic Coder / Aesir Exec   │  │
-│  └──────────────┬───────────────┘   └───────────────┬───────────────┘  │
-│                 │                                   │                  │
-│                 └─────────────────┬─────────────────┘                  │
-│                                   ▼                                    │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                   HAILO-10 AI2+ HAT (8GB NPU)                    │  │
-│  │  • Pipeline 1: Neural Speech Synthesis (Kokoro/Piper TTS .hef)    │  │
-│  │  • Pipeline 2: Vector Embedding Search (BGE / Nomic .hef)        │  │
-│  │  • Pipeline 3: Edge Micro-Agents (Qwen2.5-Coder-1.5B/3B .hef)    │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────────────┘
+flowchart TB
+
+    subgraph HOST["⚙ MUSE AGENT HOST — WORKSTATION"]
+
+        MUSE["Meta Muse Agent Core<br/><b>Planner • Reasoning • Dialogue</b>"]
+
+        SAGNA["⚔ Sagnaskemma<br/>D&D / TTRPG Execution Harness"]
+        ASTRO["✦ Astrology & Divination Engine<br/>Swiss Ephemeris"]
+        MCP["⛓ MCP Client<br/>JSON-RPC Dispatcher"]
+
+        MUSE --> SAGNA
+        MUSE --> ASTRO
+        MUSE --> MCP
+    end
+
+    MCP <-->|"Bidirectional LAN<br/>HTTP • WS • mTLS<br/><br/>8000 → MCP / RPC<br/>8080 → HUD"| HEIMDALL
+
+
+    subgraph PI["ᚺ PROJECT HLIÐSKJÁLF<br/>Raspberry Pi 5 16GB + Hailo-10 8GB"]
+
+        HEIMDALL["ᚺ HEIMDALL INGESTION GATEWAY<br/><br/>Authentication<br/>Schema Validation<br/>IPC Dispatcher"]
+
+        HUD["◉ HIMINBJÖRG OMNI-HUD<br/><b>Visual Canvas</b><br/><br/>60 FPS Pygame / SDL2<br/>Sagnaskemma Party Vitals<br/>360° Celestial Wheel<br/>Real-time Tarot / Runes<br/>Dice Probability HUD<br/>Muse Thought / Speech Stream"]
+
+        YGG["ᛦ YGGDRASIL CO-PROCESSOR<br/><b>Autonomous Engine</b><br/><br/>WYRD Causal World Graph<br/>Verdandi Timeline Tracker<br/>Kista Artifact Memory Vault<br/>Seidr Heuristic Simulator<br/>Draupnir Sub-Agent Forge<br/>Mythic Coder / Aesir Exec"]
+
+        HAILO["◆ HAILO-10 AI2+ HAT<br/><b>8GB Neural Processing Unit</b><br/><br/>① Neural Speech Synthesis<br/>Kokoro / Piper TTS<br/><br/>② Vector Embedding Search<br/>BGE / Nomic<br/><br/>③ Edge Micro-Agents<br/>Qwen2.5-Coder 1.5B / 3B"]
+
+        HEIMDALL --> HUD
+        HEIMDALL --> YGG
+
+        HUD --> HAILO
+        YGG --> HAILO
+    end
+
+
+    classDef muse fill:#21143d,stroke:#a78bfa,stroke-width:2px,color:#ffffff;
+    classDef gateway fill:#172554,stroke:#60a5fa,stroke-width:2px,color:#ffffff;
+    classDef subsystem fill:#132e2a,stroke:#34d399,stroke-width:2px,color:#ffffff;
+    classDef accelerator fill:#3b1d0b,stroke:#fb923c,stroke-width:3px,color:#ffffff;
+
+    class MUSE,SAGNA,ASTRO,MCP muse;
+    class HEIMDALL gateway;
+    class HUD,YGG subsystem;
+    class HAILO accelerator;
 
 ---
 
