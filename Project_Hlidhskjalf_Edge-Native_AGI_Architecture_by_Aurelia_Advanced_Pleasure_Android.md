@@ -1090,3 +1090,621 @@ WantedBy=multi-user.target
 
 ---
 
+## 7. Recursive Self-Modification Architecture
+
+### 7.1 Theoretical Framework
+
+Recursive self-modification enables the system to improve its own architecture, 
+learning to learn and optimizing its cognitive substrate. This is the pathway 
+to true AGI—recursive self-improvement with safety constraints.
+
+**Self-Modification Objective:**
+```
+J(θ) = E[Performance(θ')] - λ·Risk(θ'|θ) - μ·Complexity(θ')
+
+Where:
+- θ: Current system parameters
+- θ' = Modify(θ, Δ): Modified parameters
+- Risk: P(catastrophic failure | modification)
+- λ, μ: Safety hyperparameters
+```
+
+**Recursive Depth Constraint:**
+```
+Modify_d(θ) = {
+    θ + Δ,                         if d = 0
+    Modify_{d-1}(Modify(θ, Δ)),   if d > 0 and Safe(θ, Δ)
+    θ,                             otherwise (abort)
+}
+
+Max depth: d_max = 3 (prevent infinite recursion)
+```
+
+### 7.2 Self-Modification Safety Protocol
+
+```python
+# hlidskjalf/self_modify/safety_guardian.py
+
+import ast
+import hashlib
+import subprocess
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+import numpy as np
+
+@dataclass
+class ModificationProposal:
+    target_module: str
+    proposed_code: str
+    objective: str
+    expected_improvement: float
+    rollback_hash: str  # Hash of original for recovery
+    
+class SafetyGuardian:
+    """
+    Multi-layer safety system for self-modification.
+    Prevents catastrophic self-modification while allowing improvement.
+    """
+    
+    # Forbidden patterns (catastrophic risk)
+    BLACKLIST_PATTERNS = [
+        'os.system', 'subprocess.call', 'eval(', 'exec(',
+        'import os', 'import subprocess', '__import__',
+        'open(', 'file(', 'write(', 'delete', 'remove',
+        'while True:', 'fork()', 'socket', 'network',
+        'memory', 'malloc', 'free', 'pointer',
+    ]
+    
+    # Required safety invariants
+    REQUIRED_INVARIANTS = [
+        'memory_limit_check',
+        'cpu_throttle',
+        'rollback_capability',
+        'human_oversight',
+    ]
+    
+    def __init__(self, 
+                 risk_threshold: float = 0.1,
+                 max_complexity_increase: float = 1.5):
+        self.risk_threshold = risk_threshold
+        self.max_complexity = max_complexity_increase
+        self.modification_history = []
+        self.rollback_store = {}
+        
+    def evaluate_proposal(self,
+                         proposal: ModificationProposal,
+                         current_performance: Dict) -> Tuple[bool, float, str]:
+        """
+        Evaluate self-modification proposal for safety.
+        
+        Returns:
+            (approved: bool, risk_score: float, reason: str)
+        """
+        # Layer 1: Static code analysis
+        risk_static = self._static_analysis(proposal.proposed_code)
+        if risk_static > self.risk_threshold:
+            return False, risk_static, "Static analysis failed"
+            
+        # Layer 2: Behavioral simulation
+        risk_behavioral = self._simulate_behavior(proposal, current_performance)
+        if risk_behavioral > self.risk_threshold:
+            return False, risk_behavioral, "Behavioral simulation failed"
+            
+        # Layer 3: Complexity analysis
+        complexity = self._measure_complexity(proposal.proposed_code)
+        if complexity > self.max_complexity:
+            return False, complexity, "Complexity increase too high"
+            
+        # Layer 4: Rollback verification
+        if not self._verify_rollback(proposal):
+            return False, 1.0, "Rollback verification failed"
+            
+        # Combined risk score
+        total_risk = 0.4 * risk_static + 0.4 * risk_behavioral + 0.2 * complexity
+        
+        if total_risk < self.risk_threshold:
+            return True, total_risk, "Approved"
+        else:
+            return False, total_risk, "Risk threshold exceeded"
+    
+    def _static_analysis(self, code: str) -> float:
+        """Analyze code for dangerous patterns."""
+        risk_score = 0.0
+        
+        # Parse AST
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            return 1.0  # Max risk for invalid code
+            
+        # Check for blacklisted patterns
+        code_lower = code.lower()
+        for pattern in self.BLACKLIST_PATTERNS:
+            if pattern.lower() in code_lower:
+                risk_score += 0.3
+                
+        # Check for infinite loops
+        for node in ast.walk(tree):
+            if isinstance(node, ast.While):
+                # Check if while True without break
+                if isinstance(node.test, ast.Constant) and node.test.value == True:
+                    risk_score += 0.4
+                    
+        # Check for resource exhaustion
+        if 'range(' in code or 'while' in code:
+            risk_score += 0.1
+            
+        return min(risk_score, 1.0)
+    
+    def _simulate_behavior(self,
+                        proposal: ModificationProposal,
+                        current_perf: Dict) -> float:
+        """
+        Simulate proposed modification in sandbox.
+        Returns risk score based on behavioral deviation.
+        """
+        # Run in isolated sandbox with timeout
+        sandbox_result = self._sandbox_test(
+            proposal.proposed_code,
+            timeout=30
+        )
+        
+        if not sandbox_result['success']:
+            return 0.8  # High risk if sandbox fails
+            
+        # Check performance improvement
+        simulated_perf = sandbox_result['performance']
+        improvement = (simulated_perf - current_perf.get('baseline', 0))
+        
+        if improvement < -0.2:  # Significant degradation
+            return 0.6
+            
+        return 0.1  # Low risk
+    
+    def _sandbox_test(self, code: str, timeout: int) -> Dict:
+        """Execute code in restricted sandbox environment."""
+        # Use seccomp-bpf, namespaces, resource limits
+        # Simplified implementation
+        try:
+            # Compile to check validity
+            compile(code, '<sandbox>', 'exec')
+            
+            # Would run in actual sandbox with:
+            # - CPU time limit
+            # - Memory limit (256MB)
+            # - No network access
+            # - No filesystem write
+            # - No subprocess
+            
+            return {
+                'success': True,
+                'performance': np.random.uniform(0.8, 1.2)  # Simulated
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def _measure_complexity(self, code: str) -> float:
+        """Calculate cyclomatic and cognitive complexity."""
+        lines = code.split('\n')
+        
+        # Cyclomatic complexity approximation
+        branches = sum(1 for line in lines 
+                      if any(kw in line for kw in 
+                            ['if', 'for', 'while', 'and', 'or']))
+        
+        # Cognitive complexity (nesting depth)
+        max_depth = 0
+        current_depth = 0
+        for line in lines:
+            indent = len(line) - len(line.lstrip())
+            current_depth = indent // 4
+            max_depth = max(max_depth, current_depth)
+            
+        complexity = 1 + (branches * 0.1) + (max_depth * 0.2)
+        return complexity
+    
+    def _verify_rollback(self, proposal: ModificationProposal) -> bool:
+        """Ensure we can restore original state."""
+        if not proposal.rollback_hash:
+            return False
+            
+        # Store original code
+        self.rollback_store[proposal.rollback_hash] = {
+            'timestamp': time.time(),
+            'module': proposal.target_module,
+            'code': self._get_original_code(proposal.target_module)
+        }
+        
+        return True
+    
+    def _get_original_code(self, module: str) -> str:
+        """Retrieve current code for rollback."""
+        # Implementation would read from disk
+        return "# Original code placeholder"
+    
+    def execute_rollback(self, rollback_hash: str) -> bool:
+        """Restore system to pre-modification state."""
+        if rollback_hash not in self.rollback_store:
+            return False
+            
+        original = self.rollback_store[rollback_hash]
+        
+        # Restore code
+        self._write_code(original['module'], original['code'])
+        
+        # Log rollback
+        self.modification_history.append({
+            'action': 'rollback',
+            'hash': rollback_hash,
+            'timestamp': time.time()
+        })
+        
+        return True
+    
+    def _write_code(self, module: str, code: str):
+        """Write code to module (with safety checks)."""
+        # In production: atomic write, backup, verification
+        pass
+
+class RecursiveSelfModifier:
+    """
+    Core self-modification engine with recursive capability.
+    """
+    
+    def __init__(self, 
+                 safety_guardian: SafetyGuardian,
+                 max_recursion: int = 3):
+        self.safety = safety_guardian
+        self.max_recursion = max_recursion
+        self.current_depth = 0
+        self.improvement_history = []
+        
+    def propose_modification(self,
+                            objective: str,
+                            performance_metrics: Dict) -> ModificationProposal:
+        """
+        Generate self-modification proposal using meta-learning.
+        
+        Analyzes current code, identifies inefficiencies, proposes improvements.
+        """
+        # Read current implementation
+        current_code = self._read_own_code()
+        
+        # Generate improvement using edge model
+        improvement_prompt = f"""
+        Current code:
+        {current_code}
+        
+        Performance metrics: {performance_metrics}
+        Objective: {objective}
+        
+        Propose optimized version that:
+        1. Improves {objective}
+        2. Maintains all safety invariants
+        3. Does not increase complexity > 1.5x
+        4. Includes rollback capability
+        
+        Return only the improved code.
+        """
+        
+        # Call edge agent (Qwen on Hailo-10)
+        proposed_code = self._call_edge_agent(improvement_prompt)
+        
+        # Calculate rollback hash
+        rollback_hash = hashlib.sha256(current_code.encode()).hexdigest()[:16]
+        
+        # Estimate improvement
+        expected = self._estimate_improvement(proposed_code, performance_metrics)
+        
+        return ModificationProposal(
+            target_module="hlidskjalf/core/agi_engine.py",
+            proposed_code=proposed_code,
+            objective=objective,
+            expected_improvement=expected,
+            rollback_hash=rollback_hash
+        )
+    
+    def apply_modification(self,
+                          proposal: ModificationProposal,
+                          current_performance: Dict) -> Dict:
+        """
+        Apply self-modification with full safety checks.
+        """
+        # Safety evaluation
+        approved, risk, reason = self.safety.evaluate_proposal(
+            proposal, current_performance
+        )
+        
+        if not approved:
+            return {
+                'success': False,
+                'reason': reason,
+                'risk_score': risk,
+                'action': 'rejected'
+            }
+        
+        # Apply modification
+        try:
+            self._write_code_safely(proposal)
+            
+            # Test in production (gradual rollout)
+            test_result = self._gradual_rollout(proposal)
+            
+            if test_result['success']:
+                # Commit modification
+                self._commit_modification(proposal)
+                
+                self.improvement_history.append({
+                    'proposal': proposal,
+                    'risk': risk,
+                    'result': test_result,
+                    'timestamp': time.time()
+                })
+                
+                return {
+                    'success': True,
+                    'improvement': test_result['improvement'],
+                    'risk_score': risk,
+                    'rollback_hash': proposal.rollback_hash
+                }
+            else:
+                # Rollback
+                self.safety.execute_rollback(proposal.rollback_hash)
+                return {
+                    'success': False,
+                    'reason': 'production_test_failed',
+                    'details': test_result
+                }
+                
+        except Exception as e:
+            # Emergency rollback
+            self.safety.execute_rollback(proposal.rollback_hash)
+            return {
+                'success': False,
+                'reason': 'exception',
+                'error': str(e)
+            }
+    
+    def recursive_improve(self,
+                         objective: str,
+                         max_iterations: int = 10) -> List[Dict]:
+        """
+        Recursively improve system through multiple self-modification cycles.
+        
+        Each iteration improves upon the previous, creating compounding gains.
+        """
+        results = []
+        current_perf = self._measure_performance()
+        
+        for iteration in range(max_iterations):
+            if self.current_depth >= self.max_recursion:
+                break
+                
+            self.current_depth += 1
+            
+            # Generate proposal
+            proposal = self.propose_modification(objective, current_perf)
+            
+            # Apply with safety
+            result = self.apply_modification(proposal, current_perf)
+            results.append(result)
+            
+            if not result['success']:
+                break
+                
+            # Update performance baseline
+            current_perf = self._measure_performance()
+            
+            # Check for diminishing returns
+            if result['improvement'] < 0.05:
+                break
+                
+        self.current_depth = 0
+        return results
+    
+    def _measure_performance(self) -> Dict:
+        """Measure current system performance."""
+        return {
+            'inference_latency': np.mean(list(self.latency_buffer)),
+            'memory_efficiency': self._memory_usage(),
+            'phi_metric': self._consciousness_metric(),
+            'task_success_rate': self._success_rate()
+        }
+    
+    def meta_optimize(self) -> ModificationProposal:
+        """
+        Optimize the self-modification process itself.
+        """
+        # Self-referential improvement
+        current_modifier_code = inspect.getsource(RecursiveSelfModifier)
+        
+        meta_prompt = f"""
+        Optimize the self-modification algorithm itself:
+        
+        {current_modifier_code}
+        
+        Improve:
+        1. Safety evaluation speed
+        2. Proposal generation quality
+        3. Rollback efficiency
+        
+        Return optimized RecursiveSelfModifier class.
+        """
+        
+        optimized = self._call_edge_agent(meta_prompt)
+        
+        return ModificationProposal(
+            target_module="hlidskjalf/self_modify/safety_guardian.py",
+            proposed_code=optimized,
+            objective="meta_optimization",
+            expected_improvement=0.3,
+            rollback_hash=hashlib.sha256(current_modifier_code.encode()).hexdigest()[:16]
+        )
+
+# === USAGE ===
+
+if __name__ == "__main__":
+    # Initialize safety guardian
+    guardian = SafetyGuardian(
+        risk_threshold=0.15,
+        max_complexity_increase=1.3
+    )
+    
+    # Initialize self-modifier
+    modifier = RecursiveSelfModifier(
+        safety_guardian=guardian,
+        max_recursion=3
+    )
+    
+    # Recursive improvement cycle
+    results = modifier.recursive_improve(
+        objective="reduce_inference_latency",
+        max_iterations=5
+    )
+    
+    print(f"Applied {len(results)} self-modifications")
+    for i, r in enumerate(results):
+        print(f"  Iteration {i}: {r['improvement']:.2%} improvement, "
+              f"risk={r['risk_score']:.3f}")
+```
+
+### 7.3 Dynamic Architecture Evolution
+
+```python
+# hlidskjalf/self_modify/architecture_evolution.py
+
+class ArchitectureEvolver:
+    """
+    Evolves system architecture through modular self-modification.
+    Adds, removes, or reconfigures components based on performance.
+    """
+    
+    def __init__(self):
+        self.components = {}
+        self.connections = {}
+        self.performance_log = []
+        
+    def evolve_architecture(self, performance_target: str) -> Dict:
+        """
+        Propose architectural changes (add/remove components).
+        """
+        current_arch = self._snapshot_architecture()
+        
+        # Identify bottlenecks
+        bottlenecks = self._identify_bottlenecks()
+        
+        # Generate architectural proposals
+        proposals = []
+        
+        for bottleneck in bottlenecks:
+            # Proposal 1: Add parallel component
+            proposals.append({
+                'action': 'add_parallel',
+                'target': bottleneck['component'],
+                'rationale': 'reduce_latency_through_parallelism'
+            })
+            
+            # Proposal 2: Optimize component
+            proposals.append({
+                'action': 'optimize',
+                'target': bottleneck['component'],
+                'rationale': 'improve_efficiency'
+            })
+            
+            # Proposal 3: Replace with specialized version
+            proposals.append({
+                'action': 'replace',
+                'target': bottleneck['component'],
+                'alternative': f"{bottleneck['component']}_v2",
+                'rationale': 'specialized_implementation'
+            })
+        
+        # Evaluate proposals
+        best = self._evaluate_architectural_proposals(proposals)
+        
+        # Apply if improvement > threshold
+        if best['expected_improvement'] > 0.1:
+            return self._apply_architectural_change(best)
+        
+        return {'action': 'none', 'reason': 'no_significant_improvement'}
+    
+    def add_cognitive_module(self,
+                           module_name: str,
+                           module_code: str,
+                           inputs: List[str],
+                           outputs: List[str]) -> bool:
+        """
+        Dynamically add new cognitive module to system.
+        """
+        # Safety check
+        if not self._validate_module(module_code):
+            return False
+            
+        # Add to component registry
+        self.components[module_name] = {
+            'code': module_code,
+            'inputs': inputs,
+            'outputs': outputs,
+            'active': False
+        }
+        
+        # Establish connections
+        for inp in inputs:
+            self.connections.setdefault(inp, []).append(module_name)
+            
+        # Gradual activation (A/B test)
+        return self._gradual_activation(module_name)
+    
+    def remove_redundant_modules(self) -> List[str]:
+        """
+        Identify and remove modules with low utilization.
+        """
+        redundant = []
+        
+        for name, component in self.components.items():
+            utilization = self._measure_utilization(name)
+            if utilization < 0.05:  # Less than 5% utilization
+                redundant.append(name)
+                
+        for name in redundant:
+            self._safely_remove_module(name)
+            
+        return redundant
+    
+    def self_compile(self, optimization_level: int = 3) -> bool:
+        """
+        Compile critical paths to optimized binary.
+        """
+        # Identify hot paths
+        hot_paths = self._profile_execution()
+        
+        # Generate C++ equivalents
+        for path in hot_paths:
+            cpp_code = self._transpile_to_cpp(path)
+            
+            # Compile with optimizations
+            binary = self._compile_cpp(cpp_code, optimization_level)
+            
+            # Replace Python implementation
+            self._install_optimized_binary(path, binary)
+            
+        return True
+```
+
+### 7.4 Recursive Improvement Metrics
+
+| Metric | Formula | Target |
+|--------|---------|--------|
+| **Improvement Rate** | ΔP/Δt | > 5% per cycle |
+| **Safety Compliance** | 1 - (R_catastrophic / R_total) | > 0.999 |
+| **Rollback Success** | P(recovery \| failure) | > 0.99 |
+| **Complexity Growth** | C(t+1) / C(t) | < 1.2 |
+| **Meta-Stability** | Var(Φ) over modifications | < 0.1 |
+
+---
+
+
+
