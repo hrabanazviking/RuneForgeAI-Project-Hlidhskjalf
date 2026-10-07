@@ -21,9 +21,11 @@ Project Hliðskjálf establishes a Split-Brain Asynchronous Edge Architecture. H
 flowchart TB
 
 ```mermaid
-    subgraph HOST["⚙ MUSE AGENT HOST — WORKSTATION"]
+flowchart TB
 
-        MUSE["Meta Muse Agent Core<br/><b>Planner • Reasoning • Dialogue</b>"]
+    subgraph HOST["⚙ MUSE AGENT HOST - WORKSTATION"]
+
+        MUSE["Meta Muse Agent Core<br/>Planner / Reasoning / Dialogue"]
 
         SAGNA["⚔ Sagnaskemma<br/>D&D / TTRPG Execution Harness"]
         ASTRO["✦ Astrology & Divination Engine<br/>Swiss Ephemeris"]
@@ -34,18 +36,17 @@ flowchart TB
         MUSE --> MCP
     end
 
-    MCP <-->|"Bidirectional LAN<br/>HTTP • WS • mTLS<br/><br/>8000 → MCP / RPC<br/>8080 → HUD"| HEIMDALL
-
+    MCP <-->|"Bidirectional LAN<br/>HTTP / WS / mTLS<br/><br/>Port 8000: MCP / RPC<br/>Port 8080: HUD"| HEIMDALL
 
     subgraph PI["ᚺ PROJECT HLIÐSKJÁLF<br/>Raspberry Pi 5 16GB + Hailo-10 8GB"]
 
         HEIMDALL["ᚺ HEIMDALL INGESTION GATEWAY<br/><br/>Authentication<br/>Schema Validation<br/>IPC Dispatcher"]
 
-        HUD["◉ HIMINBJÖRG OMNI-HUD<br/><b>Visual Canvas</b><br/><br/>60 FPS Pygame / SDL2<br/>Sagnaskemma Party Vitals<br/>360° Celestial Wheel<br/>Real-time Tarot / Runes<br/>Dice Probability HUD<br/>Muse Thought / Speech Stream"]
+        HUD["◉ HIMINBJÖRG OMNI-HUD<br/>Visual Canvas<br/><br/>60 FPS Pygame / SDL2<br/>Sagnaskemma Party Vitals<br/>360° Celestial Wheel<br/>Real-time Tarot / Runes<br/>Dice Probability HUD<br/>Muse Thought / Speech Stream"]
 
-        YGG["ᛦ YGGDRASIL CO-PROCESSOR<br/><b>Autonomous Engine</b><br/><br/>WYRD Causal World Graph<br/>Verdandi Timeline Tracker<br/>Kista Artifact Memory Vault<br/>Seidr Heuristic Simulator<br/>Draupnir Sub-Agent Forge<br/>Mythic Coder / Aesir Exec"]
+        YGG["ᛦ YGGDRASIL CO-PROCESSOR<br/>Autonomous Engine<br/><br/>WYRD Causal World Graph<br/>Verdandi Timeline Tracker<br/>Kista Artifact Memory Vault<br/>Seidr Heuristic Simulator<br/>Draupnir Sub-Agent Forge<br/>Mythic Coder / Aesir Exec"]
 
-        HAILO["◆ HAILO-10 AI2+ HAT<br/><b>8GB Neural Processing Unit</b><br/><br/>① Neural Speech Synthesis<br/>Kokoro / Piper TTS<br/><br/>② Vector Embedding Search<br/>BGE / Nomic<br/><br/>③ Edge Micro-Agents<br/>Qwen2.5-Coder 1.5B / 3B"]
+        HAILO["◆ HAILO-10 AI2+ HAT<br/>8GB Neural Processing Unit<br/><br/>1. Neural Speech Synthesis<br/>Kokoro / Piper TTS<br/><br/>2. Vector Embedding Search<br/>BGE / Nomic<br/><br/>3. Edge Micro-Agents<br/>Qwen2.5-Coder 1.5B / 3B"]
 
         HEIMDALL --> HUD
         HEIMDALL --> YGG
@@ -53,7 +54,6 @@ flowchart TB
         HUD --> HAILO
         YGG --> HAILO
     end
-
 
     classDef muse fill:#21143d,stroke:#a78bfa,stroke-width:2px,color:#ffffff;
     classDef gateway fill:#172554,stroke:#60a5fa,stroke-width:2px,color:#ffffff;
@@ -64,7 +64,6 @@ flowchart TB
     class HEIMDALL gateway;
     class HUD,YGG subsystem;
     class HAILO accelerator;
-
 ```
 
 ---
