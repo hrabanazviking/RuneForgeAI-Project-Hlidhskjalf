@@ -118,109 +118,99 @@ Hliðskjálf merges, synthesizes, and builds directly upon the following reposit
 
 ### 4.1 Celestial Coordinate Projection (Ephemeris to Canvas)
 
-To map astronomical longitude $\lambda$ to screen coordinates on the Himinbjörg 360° celestial wheel, the Ascendant $\lambda_{\mathrm{ASC}}$ is anchored at the 9 o'clock horizon $(\pi \text{ rad} = 180^\circ)$.
+To map astronomical longitude $\lambda$ to screen coordinates on the Himinbjörg 360° celestial wheel, the Ascendant $\lambda_{\mathrm{ASC}}$ is anchored at the 9 o'clock horizon.
 
-Given center coordinates $(x_c, y_c)$ and track radius $R$, define the projected angular position:
+Given center coordinates $(x_c, y_c)$ and track radius $R$, calculate the angular position:
 
-$$
+```math
 \theta =
-\left[
 \left(
-\lambda - \lambda_{\mathrm{ASC}}
-\right)
+(\lambda - \lambda_{\mathrm{ASC}})
 \frac{\pi}{180}
-
 + \pi
-  \right]
-  \bmod 2\pi
-  $$
+\right)
+\bmod 2\pi
+```
 
-The corresponding screen coordinates are:
+The screen coordinates are:
 
-$$
+```math
 x = x_c + R\cos(\theta)
-$$
+```
 
-$$
+```math
 y = y_c + R\sin(\theta)
-$$
+```
 
-Thus, when $\lambda = \lambda_{\mathrm{ASC}}$:
+When:
 
-$$
+```math
+\lambda = \lambda_{\mathrm{ASC}}
+```
+
+then:
+
+```math
 \theta = \pi
-$$
+```
 
-and the Ascendant appears at the 9 o'clock horizon:
+and therefore:
 
-$$
-(x,y) = (x_c - R,\ y_c)
-$$
+```math
+x = x_c - R
+```
+
+```math
+y = y_c
+```
+
+This places the Ascendant at the 9 o'clock position of the celestial wheel.
 
 ---
 
 ### 4.2 Aspect Separation & Harmonic Chords
 
-For two celestial bodies $p_1$ and $p_2$ with longitudes $\lambda_1$ and $\lambda_2$, first compute their raw angular separation:
+For two celestial bodies $p_1$ and $p_2$ with longitudes $\lambda_1$ and $\lambda_2$, calculate the raw angular separation:
 
-$$
-\Delta =
-\left|
-\lambda_1 - \lambda_2
-\right|
-$$
+```math
+\Delta = |\lambda_1 - \lambda_2|
+```
 
-The shortest angular separation on the 360° circle is:
+The shortest angular distance around the celestial circle is:
 
-$$
-\delta =
-\min
-\left(
-\Delta,,
-360^\circ - \Delta
-\right)
-$$
+```math
+\delta = \min(\Delta, 360^\circ - \Delta)
+```
 
 Aspect detection uses an orb tolerance of:
 
-$$
-\epsilon = \pm 4^\circ
-$$
+```math
+\epsilon = 4^\circ
+```
 
-The primary harmonic aspects are:
+#### Trine
 
-- Trine $(120^\circ)$
+```math
+|\delta - 120^\circ| \le 4^\circ
+```
 
-$$
-\left|
-\delta - 120^\circ
-\right|
-\le 4^\circ
-\quad\Longrightarrow\quad
-\text{Astral Blue }(64,134,244)
-$$
+Color: **Astral Blue** `(64, 134, 244)`
 
-- Square $(90^\circ)$
+#### Square
 
-$$
-\left|
-\delta - 90^\circ
-\right|
-\le 4^\circ
-\quad\Longrightarrow\quad
-\text{Peril Red }(239,68,68)
-$$
+```math
+|\delta - 90^\circ| \le 4^\circ
+```
 
-- Opposition $(180^\circ)$
+Color: **Peril Red** `(239, 68, 68)`
 
-$$
-\left|
-\delta - 180^\circ
-\right|
-\le 4^\circ
-\quad\Longrightarrow\quad
-\text{Mystic Purple }(168,85,247)
-$$
+#### Opposition
+
+```math
+|\delta - 180^\circ| \le 4^\circ
+```
+
+Color: **Mystic Purple** `(168, 85, 247)`
 
 ---
 
@@ -230,318 +220,279 @@ Let local sunrise be $T_{\mathrm{rise}}$ and sunset be $T_{\mathrm{set}}$, expre
 
 The duration of the diurnal arc is:
 
-$$
-D_{\mathrm{day}}
-
-T_{\mathrm{set}}
-
+```math
+D_{\mathrm{day}} =
+T_{\mathrm{set}} -
 T_{\mathrm{rise}}
-$$
+```
 
-Each planetary hour during daylight has duration:
+The duration of one daytime planetary hour is:
 
-$$
-\tau_{\mathrm{day}}
-
+```math
+\tau_{\mathrm{day}} =
 \frac{D_{\mathrm{day}}}{12}
-$$
+```
 
 The nocturnal arc duration is:
 
-$$
-D_{\mathrm{night}}
+```math
+D_{\mathrm{night}} =
+24 - D_{\mathrm{day}}
+```
 
-24
+The duration of one nighttime planetary hour is:
 
-D_{\mathrm{day}}
-$$
-
-Each planetary hour during the night has duration:
-
-$$
-\tau_{\mathrm{night}}
-
+```math
+\tau_{\mathrm{night}} =
 \frac{D_{\mathrm{night}}}{12}
-$$
+```
 
-The Chaldean planetary sequence is:
+The repeating Chaldean planetary sequence is:
 
-$$
-[
-\text{Saturn},
-\text{Jupiter},
-\text{Mars},
-\text{Sun},
-\text{Venus},
-\text{Mercury},
-\text{Moon}
-]
-$$
+```text
+Saturn -> Jupiter -> Mars -> Sun -> Venus -> Mercury -> Moon
+```
 
-Let the day of the week be:
+Let the day-of-week index be:
 
-$$
-W \in {0,1,2,3,4,5,6}
-$$
+```math
+W \in \{0,1,2,3,4,5,6\}
+```
 
-with:
+where:
 
-$$
-0 = \text{Sunday}
-$$
+```text
+0 = Sunday
+1 = Monday
+2 = Tuesday
+3 = Wednesday
+4 = Thursday
+5 = Friday
+6 = Saturday
+```
 
-The index of the planetary ruler for each weekday is:
+The day-ruler indices are:
 
-$$
-R_W =
-[3,6,2,5,1,4,0]_W
-$$
+```text
+[3, 6, 2, 5, 1, 4, 0]
+```
 
-For planetary-hour index:
+Thus:
 
-$$
-h \in {0,1,\ldots,11}
-$$
+```math
+R_W = [3,6,2,5,1,4,0]_W
+```
+
+For planetary-hour index $h$:
+
+```math
+h \in \{0,1,\ldots,23\}
+```
 
 the ruling planet index is:
 
-$$
-R(h,W)
-
-(R_W + h)
-\bmod 7
-$$
-
-For a continuous sequence extending through both day and night, the planetary ruler for absolute hour index $h$ is likewise:
-
-$$
-R(h,W)
-
-(R_W + h)
-\bmod 7
-$$
-
-where $h \in {0,1,\ldots,23}$.
+```math
+R(h,W) = (R_W + h) \bmod 7
+```
 
 ---
 
 ### 4.4 TTRPG Combat Probability PMF
 
-For a standard d20 roll:
+For a standard d20 roll $X$:
 
-$$
-X \sim \operatorname{Uniform}{1,2,\ldots,20}
-$$
+```math
+X \in \{1,2,\ldots,20\}
+```
 
-with:
+Each possible result has probability:
 
-$$
+```math
 P(X=k)=\frac{1}{20}
-$$
+```
 
 for:
 
-$$
-k \in {1,2,\ldots,20}
-$$
+```math
+k \in \{1,2,\ldots,20\}
+```
 
-Advantage
+#### Advantage
 
-For two independent d20 rolls $X_1$ and $X_2$:
+Given two independent d20 rolls $X_1$ and $X_2$:
 
-$$
-Y_{\mathrm{adv}}
-
-\max(X_1,X_2)
-$$
+```math
+Y_{\mathrm{adv}} = \max(X_1,X_2)
+```
 
 The probability mass function is:
 
-$$
+```math
 P(Y_{\mathrm{adv}}=k)
-
+=
 \frac{2k-1}{400}
-$$
+```
 
-Disadvantage
+#### Disadvantage
 
-Likewise:
+Given two independent d20 rolls $X_1$ and $X_2$:
 
-$$
-Y_{\mathrm{dis}}
+```math
+Y_{\mathrm{dis}} = \min(X_1,X_2)
+```
 
-\min(X_1,X_2)
-$$
+The probability mass function is:
 
-with probability mass function:
-
-$$
+```math
 P(Y_{\mathrm{dis}}=k)
-
+=
 \frac{41-2k}{400}
-$$
+```
 
 where:
 
-$$
-k \in {1,2,\ldots,20}
-$$
+```math
+k \in \{1,2,\ldots,20\}
+```
 
 ---
 
 ### 4.5 Seidr Heuristic Blending Formulation
 
-Let:
+Let $\mathbf{S}_{\mathrm{empirical}}$ represent deterministic or empirical system metrics.
 
-$$
-\mathbf{S}_{\mathrm{empirical}}
-\in
-\mathbb{R}^{n}
-$$
+Let $\mathbf{S}_{\mathrm{symbolic}}$ represent celestial, runic, divinatory, or symbolic state variables.
 
-represent deterministic or empirically derived system metrics, and let:
+The empirical evaluation function is:
 
-$$
-\mathbf{S}_{\mathrm{symbolic}}
-\in
-\mathbb{R}^{m}
-$$
-
-represent celestial, divinatory, runic, or other symbolic state variables.
-
-Let the empirical evaluation function be:
-
-$$
+```math
 f_{\mathrm{emp}}
 \left(
 \mathbf{S}_{\mathrm{empirical}}
 \right)
-$$
+```
 
-and the symbolic heuristic function be:
+The symbolic evaluation function is:
 
-$$
+```math
 f_{\mathrm{sym}}
 \left(
 \mathbf{S}_{\mathrm{symbolic}}
 \right)
-$$
+```
 
-For intuition weight:
+Let the intuition weight satisfy:
 
-$$
-\alpha \in [0,1]
-$$
+```math
+0 \le \alpha \le 1
+```
 
-the blended Seidr scenario score is:
+The blended Seidr scenario score is:
 
-$$
-S_y
-
+```math
+S_y =
 (1-\alpha)
 f_{\mathrm{emp}}
 \left(
-\mathbf{S}{\mathrm{empirical}}
+\mathbf{S}_{\mathrm{empirical}}
 \right)
 +
 \alpha
-f{\mathrm{sym}}
+f_{\mathrm{sym}}
 \left(
 \mathbf{S}_{\mathrm{symbolic}}
 \right)
-$$
+```
 
-If both component functions are normalized to the interval $[0,1]$, the blended probability of scenario outcome $y$ may be expressed directly as:
+If both components produce normalized probabilities, the blended probability of outcome $y$ is:
 
-$$
+```math
 P(y)
-
-(1-\alpha)
-P_{\mathrm{emp}}(y)
+=
+(1-\alpha)P_{\mathrm{emp}}(y)
 +
-\alpha
-P_{\mathrm{sym}}(y)
-$$
+\alpha P_{\mathrm{sym}}(y)
+```
 
-where:
+Interpretation:
 
-- $\alpha = 0$ produces a fully empirical prediction.
-- $\alpha = 1$ produces a fully symbolic heuristic prediction.
-- $0 < \alpha < 1$ produces a hybrid Seidr inference.
+- $\alpha = 0$: fully empirical evaluation.
+- $\alpha = 1$: fully symbolic heuristic evaluation.
+- $0 < \alpha < 1$: hybrid Seidr inference.
 
 ---
 
 ### 4.6 Draupnir Recursive Sub-Agent Scaling
 
-To prevent process thrashing and uncontrolled recursive worker expansion, the available sub-agent pool decays exponentially with recursion depth $d$.
+To prevent process thrashing and uncontrolled recursive expansion, the available sub-agent worker pool decreases exponentially with recursion depth $d$.
 
-Let:
+The maximum root-level worker count is:
 
-$$
+```math
 N_0 = 8
-$$
+```
 
-be the maximum root-level concurrent worker count,
+The recursion decay factor is:
 
-$$
+```math
 \gamma = 0.5
-$$
+```
 
-be the recursion decay factor, and:
+The normalized task-complexity factor satisfies:
 
-$$
-C \in (0,1]
-$$
-
-be the normalized task-complexity factor.
+```math
+0 < C \le 1
+```
 
 The theoretical worker allocation at recursion depth $d$ is:
 
-$$
+```math
 N_{\mathrm{raw}}(d)
-
+=
 N_0 C \gamma^d
-$$
+```
 
-The executable integer worker count is:
+The actual integer worker allocation is:
 
-$$
+```math
 N_{\mathrm{workers}}(d)
-
+=
 \left\lfloor
 N_0 C \gamma^d
 \right\rfloor
-$$
+```
 
-Thus, for the default maximum-complexity case $C=1$:
+For maximum task complexity, where $C=1$:
 
-$$
+```math
 N_{\mathrm{workers}}(0)=8
-$$
+```
 
-$$
+```math
 N_{\mathrm{workers}}(1)=4
-$$
+```
 
-$$
+```math
 N_{\mathrm{workers}}(2)=2
-$$
+```
 
-$$
+```math
 N_{\mathrm{workers}}(3)=1
-$$
+```
 
-Recursive spawning halts when:
+Recursive spawning stops when:
 
-$$
+```math
 N_{\mathrm{raw}}(d) < 1
-$$
+```
 
-or when the maximum permitted recursion depth is reached:
+or when:
 
-$$
+```math
 d \ge 3
-$$
+```
+
+A worker operating at depth 3 may complete its assigned task, but it cannot spawn a depth-4 generation.
 
 ---
 
