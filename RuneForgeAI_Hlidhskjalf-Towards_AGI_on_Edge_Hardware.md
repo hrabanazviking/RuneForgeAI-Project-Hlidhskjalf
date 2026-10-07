@@ -1,595 +1,1503 @@
-# **RuneForgeAI: Hliðskjálf - Towards AGI on Edge Hardware**
-## **Meta Muse AI Agent Architecture with Raspberry Pi 5 + Hailo 10**
+# RuneForgeAI: Hliðskjálf
+## Towards AGI on Edge Hardware
 
-(RuneForgeAI_Hlidhskjalf-Towards_AGI_on_Edge_Hardware.md)
+### Meta Muse AI Agent Architecture with Raspberry Pi 5 + Hailo-10
+
+`RuneForgeAI_Hlidhskjalf-Towards_AGI_on_Edge_Hardware.md`
 
 ---
 
-```markdown
-# RuneForgeAI: Hliðskjálf - Towards AGI on Edge Hardware
+**Version:** `1.0.0-alpha`  
+**Project:** RuneForgeAI  
+**Architecture:** Meta Muse + Project Hliðskjálf  
+**Hardware Target:** Raspberry Pi 5 + Hailo-10 AI accelerator  
+**License:** MIT + Apache 2.0 dual license  
+**Status:** Experimental AGI-oriented research architecture
 
-## Meta Muse AI Agent Architecture with Raspberry Pi 5 + Hailo 10
-
-**Version:** 1.0.0-alpha  
-**Author:** RuneForgeAI Project Team  
-**License:** MIT + Apache 2.0 (Dual)  
-**Last Updated:** 2024
+> **Research note:** This document describes an experimental architecture for pursuing increasingly general autonomous intelligence on edge hardware. It does not claim that the architecture has achieved scientifically demonstrated AGI.
 
 ---
 
 ## Table of Contents
 
-1. [Executive Summary](#executive-summary)
-2. [Theoretical Framework](#theoretical-framework)
-3. [Hardware Architecture](#hardware-architecture)
-4. [Meta Muse AI Agent Design](#meta-muse-ai-agent-design)
-5. [Mathematical Foundations](#mathematical-foundations)
-6. [Implementation](#implementation)
-7. [Training Methodology](#training-methodology)
-8. [Memory Management](#memory-management)
-9. [Inference Optimization](#inference-optimization)
-10. [Integration with Hliðskjálf](#integration-with-hliðskjálf)
-11. [Performance Benchmarks](#performance-benchmarks)
-12. [Future Roadmap](#future-roadmap)
+1. [Executive Summary](#1-executive-summary)
+2. [Theoretical Framework](#2-theoretical-framework)
+3. [Hardware Architecture](#3-hardware-architecture)
+4. [Meta Muse AI Agent Design](#4-meta-muse-ai-agent-design)
+5. [Mathematical Foundations](#5-mathematical-foundations)
+6. [Implementation](#6-implementation)
+7. [Training Methodology](#7-training-methodology)
+8. [Memory Management](#8-memory-management)
+9. [Inference Optimization](#9-inference-optimization)
+10. [Integration with Hliðskjálf](#10-integration-with-hliðskjálf)
+11. [Performance Benchmarking](#11-performance-benchmarking)
+12. [Future Roadmap](#12-future-roadmap)
+13. [References](#13-references)
+14. [Appendix A: Mathematical Derivations](#appendix-a-mathematical-derivations)
+15. [Appendix B: Hailo Compilation Workflow](#appendix-b-hailo-compilation-workflow)
+16. [License](#license)
 
 ---
 
-## Executive Summary
+# 1. Executive Summary
 
-This document presents a comprehensive technical architecture for achieving Artificial General Intelligence (AGI) capabilities using the **Meta Muse AI Agent** deployed on a **Raspberry Pi 5** with **16GB RAM** and an **AI2+ Hailo 10 HAT** featuring **8GB dedicated NPU memory**. The system leverages the mythological framework of **Hliðskjálf** (Odin's all-seeing throne) from the RuneForgeAI Project.
+Project **Hliðskjálf** explores an AGI-oriented cognitive architecture built around the **Meta Muse AI Agent**, a **Raspberry Pi 5 with 16 GB of system memory**, and a **Hailo-10 accelerator with dedicated accelerator memory**.
 
-### Key Innovation
-The architecture implements a **Hierarchical Cognitive Processing Network (HCPN)** that distributes AGI workloads across:
-- **Host CPU (ARM Cortex-A76)**: Meta-cognitive orchestration
-- **Host RAM (16GB DDR4)**: Working memory & knowledge base
-- **Hailo 10 NPU (8GB)**: Neural inference acceleration
-- **Meta Muse Agent**: Autonomous goal-directed reasoning
+Rather than treating AGI as a single monolithic neural network, Hliðskjálf models general intelligence as a distributed cognitive system composed of:
+
+- perception
+- memory
+- reasoning
+- planning
+- tool use
+- learning
+- meta-cognition
+- world modeling
+- self-monitoring
+- persistent state
+- autonomous execution
+- edge neural acceleration
+
+The architecture implements a **Hierarchical Cognitive Processing Network**, or **HCPN**, in which different classes of cognitive work are routed to different computational layers.
+
+| Layer | Primary Responsibility |
+| --- | --- |
+| Raspberry Pi 5 CPU | orchestration, memory, state, scheduling, tool execution |
+| Raspberry Pi system memory | working memory, databases, world model, caches |
+| Hailo-10 NPU | compatible neural inference workloads |
+| Hailo accelerator memory | neural model state and inference buffers |
+| Meta Muse | high-level reasoning, planning, reflection, and goal management |
+| Hliðskjálf | unifying runtime and cognitive architecture |
 
 ---
 
-## Theoretical Framework
+## 1.1 Central Design Principle
 
-### 2.1 AGI Definition & Metrics
+The system is designed around a closed cognitive loop:
 
-We define AGI using the **Cognitive Capability Index (CCI)**:
-
+```text
+PERCEIVE
+   ↓
+REMEMBER
+   ↓
+MODEL
+   ↓
+REASON
+   ↓
+PLAN
+   ↓
+ACT
+   ↓
+VERIFY
+   ↓
+REFLECT
+   ↓
+LEARN
+   ↓
+REPEAT
 ```
-CCI = Σᵢ₌₁ⁿ (wᵢ × Cᵢ) / n
 
-Where:
-- Cᵢ = Capability score for domain i ∈ [0,1]
-- wᵢ = Importance weight for domain i
-- n = Number of cognitive domains (n=7)
+The intended transition is from:
 
-Domains: Perception, Memory, Reasoning, Learning, Planning, Communication, Self-awareness
+```text
+prompt → model → response
 ```
 
-### 2.2 The Hliðskjálf Metaphor
+toward:
 
-The system architecture maps Norse cosmology to computational structures:
+```text
+observation
+    ↓
+persistent internal state
+    ↓
+goal-directed cognition
+    ↓
+action
+    ↓
+environmental feedback
+    ↓
+continual adaptation
+```
+
+---
+
+# 2. Theoretical Framework
+
+## 2.1 AGI Definition & Metrics
+
+For this project, general intelligence is treated as a multidimensional capability rather than a binary property.
+
+Define a **Cognitive Capability Index**:
+
+```math
+CCI
+=
+\frac{
+\sum_{i=1}^{n}
+w_i C_i
+}{
+\sum_{i=1}^{n}
+w_i
+}
+```
+
+where:
+
+```text
+C_i = normalized capability score for domain i
+w_i = importance weight for domain i
+n   = number of evaluated cognitive domains
+```
+
+Candidate domains include:
+
+1. perception
+2. memory
+3. reasoning
+4. learning
+5. planning
+6. communication
+7. self-modeling
+8. tool use
+9. generalization
+10. error recovery
+
+A weighted geometric mean can provide a stricter measure:
+
+```math
+G
+=
+\prod_{i=1}^{n}
+C_i^{w_i}
+```
+
+subject to:
+
+```math
+\sum_{i=1}^{n} w_i = 1
+```
+
+This penalizes architectures with severe weakness in one essential domain even if other scores are very high.
+
+---
+
+## 2.2 The Hliðskjálf Metaphor
+
+The project maps Norse mythological concepts to computational roles.
 
 | Mythological Element | Computational Mapping |
-|---------------------|----------------------|
-| Hliðskjálf (Throne) | Central Orchestrator Node |
-| Yggdrasil (World Tree) | Interconnect Bus / Data Fabric |
-| Nine Worlds | Distributed Processing Clusters |
-| Bifröst (Rainbow Bridge) | High-Bandwidth Data Pipeline |
-| Odin's Ravens (Huginn & Muninn) | Input/Output Processing Streams |
-| Valhalla | Training Data Repository |
-| Runic Magic | Algorithmic Transformations |
+| --- | --- |
+| **Hliðskjálf** | global cognitive orchestrator and observation layer |
+| **Yggdrasil** | system-wide data fabric and world-state architecture |
+| **Bifröst** | communication and event transport |
+| **Huginn** | perception, observation, and active information gathering |
+| **Muninn** | episodic and semantic memory |
+| **Asgard** | high-level planning |
+| **Vanaheim** | creative and generative cognition |
+| **Alfheim** | perception and lightweight inference |
+| **Midgard** | human interaction |
+| **Jotunheim** | heavy computation |
+| **Muspelheim** | transformation and synthesis |
+| **Niflheim** | archival and cold-state memory |
+| **Svartalfheim** | detailed construction and tool-building |
+| **Helheim** | failure recovery and degraded-mode operation |
 
 ---
 
-## Hardware Architecture
+## 2.3 General Cognitive Architecture
 
-### 3.1 System Specifications
+```mermaid
+flowchart TB
 
+    INPUT["Environment / User / Sensors"]
+
+    HUGINN["HUGINN<br/>Perception"]
+
+    MEMORY["MUNINN<br/>Memory"]
+
+    WORLD["YGGDRASIL<br/>World Model"]
+
+    MUSE["META MUSE<br/>Reasoning"]
+
+    META["META-COGNITION"]
+
+    GOALS["GOAL MANAGER"]
+
+    PLAN["PLANNER"]
+
+    TOOLS["TOOLS / ACTION"]
+
+    VERIFY["VERIFICATION"]
+
+    LEARN["LEARNING / CONSOLIDATION"]
+
+    INPUT --> HUGINN
+
+    HUGINN --> WORLD
+    HUGINN --> MEMORY
+
+    MEMORY <--> MUSE
+    WORLD <--> MUSE
+
+    MUSE <--> META
+
+    META --> GOALS
+    GOALS --> PLAN
+
+    PLAN --> TOOLS
+    TOOLS --> INPUT
+
+    TOOLS --> VERIFY
+    VERIFY --> LEARN
+
+    LEARN --> MEMORY
+    LEARN --> WORLD
+    LEARN --> MUSE
+
+    classDef perception fill:#172554,stroke:#60a5fa,stroke-width:2px,color:#ffffff;
+    classDef cognition fill:#21143d,stroke:#a78bfa,stroke-width:2px,color:#ffffff;
+    classDef memory fill:#132e2a,stroke:#34d399,stroke-width:2px,color:#ffffff;
+    classDef action fill:#3b1d0b,stroke:#fb923c,stroke-width:2px,color:#ffffff;
+
+    class INPUT,HUGINN perception;
+    class MUSE,META,GOALS,PLAN cognition;
+    class MEMORY,WORLD,LEARN memory;
+    class TOOLS,VERIFY action;
 ```
+
+---
+
+# 3. Hardware Architecture
+
+## 3.1 System Components
+
+### Raspberry Pi 5
+
+The Raspberry Pi provides the persistent general-purpose computing layer.
+
+Primary responsibilities:
+
+- Linux operating environment
+- Meta Muse integration
+- task scheduling
+- world-state storage
+- memory databases
+- event routing
+- tool execution
+- Himinbjörg visualization
+- network communication
+- sandbox management
+
+### Hailo-10 Accelerator
+
+The Hailo accelerator provides dedicated neural-processing capacity for compatible workloads.
+
+Potential workloads include:
+
+- embeddings
+- local neural inference
+- vision encoding
+- audio processing
+- classification
+- small local language models
+- multimodal feature extraction
+
+---
+
+## 3.2 Hardware Topology
+
+```mermaid
+flowchart LR
+
+    subgraph PI["RASPBERRY PI 5"]
+
+        CPU["BCM2712<br/>4x Cortex-A76"]
+
+        RAM["16 GB SYSTEM MEMORY"]
+
+        GPU["VideoCore VII"]
+
+        NVME["NVMe / Persistent Storage"]
+
+        OS["Linux Runtime"]
+
+        CPU <--> RAM
+        CPU <--> GPU
+        CPU <--> NVME
+        CPU <--> OS
+    end
+
+    subgraph LINK["PCIe INTERCONNECT"]
+
+        PCIE["PCIe x1 Link"]
+    end
+
+    subgraph HAILO["HAILO-10 ACCELERATOR"]
+
+        NPU["Neural Processing Unit"]
+
+        NPURAM["8 GB Dedicated Memory"]
+
+        RUNTIME["Hailo Runtime / Compiled Graphs"]
+
+        NPU <--> NPURAM
+        NPU <--> RUNTIME
+    end
+
+    CPU <-->|"Tensor / Command Traffic"| PCIE
+    PCIE <-->|"DMA / Descriptor Traffic"| NPU
+```
+
+---
+
+## 3.3 Memory Hierarchy
+
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    RASPBERRY PI 5 PLATFORM                   │
+│ LAYER 0                                                     │
+│ Accelerator-local execution buffers                         │
 ├─────────────────────────────────────────────────────────────┤
-│  CPU: Broadcom BCM2712 (Quad-core Cortex-A76 @ 2.4GHz)      │
-│  RAM: 16GB LPDDR4X-4266 (Dual-channel, 68GB/s bandwidth)      │
-│  GPU: VideoCore VII (800MHz, 4Kp60 support)                  │
-│  Storage: NVMe SSD via PCIe 2.0 x1 (400MB/s)                 │
-│  GPIO: 40-pin header (28 GPIO, SPI, I2C, UART, PWM)          │
-│  Power: 5V/5A USB-C (25W max, 15W sustained)                  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  AI2+ HAILO 10 HAT (8GB)                     │
+│ LAYER 1                                                     │
+│ Hailo dedicated memory                                      │
+│ Model weights / activations / compatible inference state    │
 ├─────────────────────────────────────────────────────────────┤
-│  NPU: Hailo-10 (26 TOPS INT8 / 13 TOPS FP16)                │
-│  Memory: 8GB LPDDR4 (dedicated, 102GB/s bandwidth)           │
-│  Interface: PCIe 3.0 x4 (via M.2 HAT+)                      │
-│  Power: 8W typical, 15W peak                                  │
-│  Temperature: 0°C to 70°C operating range                    │
-│  Framework: HailoRT 4.x, TensorFlow Lite, ONNX Runtime      │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 3.2 Memory Hierarchy
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  LAYER 0: Hailo NPU SRAM (2MB) - Ultra-fast inference cache   │
-│  LAYER 1: Hailo LPDDR4 (8GB) - Model weights & activations    │
-│  LAYER 2: Pi LPDDR4X (16GB) - Working memory & OS           │
-│  LAYER 3: NVMe SSD - Persistent knowledge base & checkpoints  │
-│  LAYER 4: Network Storage - Training datasets & archives      │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 3.3 Hardware Architecture Diagram
-
-![Hardware Architecture](IdAGIXy1a92YGK.3)
-
----
-
-## Meta Muse AI Agent Design
-
-### 4.1 Agent Architecture
-
-The Meta Muse agent implements a **Reflective Cognitive Architecture (RCA)** with the following components:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    META MUSE AGENT CORE                       │
+│ LAYER 2                                                     │
+│ Raspberry Pi 5 system memory                                │
+│ Working memory / world model / databases / runtime state    │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  Perception │  │   Memory    │  │   Reasoning │         │
-│  │   Module    │◄─┤   Module    │◄─┤   Engine    │         │
-│  │   (Sensory) │  │(Episodic &  │  │  (Symbolic  │         │
-│  │             │  │  Semantic)  │  │   + Neural) │         │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
-│         │                │                │                 │
-│         └────────────────┼────────────────┘                 │
-│                          │                                  │
-│                   ┌──────┴──────┐                          │
-│                   │   Meta-     │                          │
-│                   │  Cognitive  │                          │
-│                   │  Controller │                          │
-│                   │  (The Self) │                          │
-│                   └──────┬──────┘                          │
-│                          │                                  │
-│         ┌────────────────┼────────────────┐              │
-│         │                │                │                 │
-│  ┌──────┴──────┐  ┌──────┴──────┐  ┌──────┴──────┐         │
-│  │   Goal      │  │   Learning  │  │   Action    │         │
-│  │  Formation  │  │   Module    │  │   Executor  │         │
-│  │             │  │(Meta-learn) │  │             │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│ LAYER 3                                                     │
+│ NVMe SSD                                                    │
+│ Persistent memory / checkpoints / models / logs             │
+├─────────────────────────────────────────────────────────────┤
+│ LAYER 4                                                     │
+│ Optional network or archival storage                        │
+│ Training corpora / large archives / backup                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Agent State Representation
-
-The agent maintains a **Continuous Cognitive State Vector**:
-
-```
-S(t) = [P(t), M(t), G(t), E(t), C(t)]
-
-Where:
-P(t) ∈ ℝ^d_p  = Perceptual state (d_p = 2048)
-M(t) ∈ ℝ^d_m  = Memory embedding (d_m = 4096)  
-G(t) ∈ ℝ^d_g  = Goal vector (d_g = 1024)
-E(t) ∈ ℝ^d_e  = Emotional/affective state (d_e = 512)
-C(t) ∈ ℝ^d_c  = Confidence/certainty (d_c = 256)
-
-Total state dimension: d_s = 7,680
-```
-
-### 4.3 Cognitive Flow Architecture
-
-![Cognitive Architecture](IdAGIXy1a92YGK.0)
-
 ---
 
-## Mathematical Foundations
+## 3.4 Logical Memory Partitioning
 
-### 5.1 Attention Mechanisms
+The system should not assume that Raspberry Pi memory and accelerator memory form a single shared pool.
 
-The core reasoning engine uses **Multi-Head Latent Attention (MHLA)**:
+Instead:
 
-```
-Attention(Q, K, V) = softmax(QK^T / √d_k) · V
+```text
+Raspberry Pi Memory
+├── Linux
+├── Meta Muse orchestration
+├── working memory
+├── Kista / Muninn databases
+├── WYRD world state
+├── task state
+├── tool sandboxes
+└── Himinbjörg
 
-MultiHead(Q, K, V) = Concat(head₁, ..., head_h) · W^O
-
-Where head_i = Attention(QW_i^Q, KW_i^K, VW_i^V)
-
-With KV-cache compression for memory efficiency:
-K_cache, V_cache ∈ ℝ^(n_kv × d_kv) where n_kv << n_ctx
-```
-
-### 5.2 Memory-Augmented Neural Networks
-
-The episodic memory uses a **Differentiable Neural Computer (DNC)**:
-
-```
-Memory update equations:
-
-M_t[i] = M_{t-1}[i] · (1 - w_t^w[i] · e_t[i]) + w_t^w[i] · v_t
-
-Where:
-- w_t^w = write weighting
-- e_t = erase vector  
-- v_t = write vector
-
-Content-based addressing:
-w_t^c[i] = softmax(β_t · D(k_t, M_t[i]))
-
-Where D(u,v) = (u · v) / (||u|| · ||v||)  [cosine similarity]
-```
-
-### 5.3 Meta-Learning Framework
-
-The agent implements **Model-Agnostic Meta-Learning (MAML)**:
-
-```
-Meta-objective:
-min_θ Σ_tasks L_task(f_θ' ) 
-where θ' = θ - α∇_θ L_task(f_θ)
-
-First-order approximation (FO-MAML):
-∇_θ L_task(f_θ') ≈ ∇_θ' L_task(f_θ') |_{θ'=θ}
-
-For AGI, we use:
-∇_meta = Σ_{τ~p(T)} ∇_θ L_τ(Adapt(θ, L_τ, k))
-```
-
-### 5.4 Consciousness Model
-
-Based on **Global Workspace Theory (GWT)**:
-
-```
-Consciousness(t) = Broadcast(Select(Compete(Inputs(t))))
-
-Where:
-Compete(X) = {x_i | x_i ∈ X, salience(x_i) > θ}
-Select(C) = argmax_{c∈C} (activation(c) · priority(c))
-Broadcast(s) = ∀m ∈ Modules: m.receive(s)
-
-Information integration:
-Φ = min_{partition(M)} [I(M) - Σ_{m∈partition} I(m)]
-```
-
-### 5.5 Transformer Architecture with Recurrent Depth
-
-```
-Layer l at step t:
-
-H^(l,t) = H^(l,t-1) + TransformerLayer(H^(l-1,t))
-
-With cross-layer attention:
-H^(l,t) = H^(l,t-1) + FFN(LayerNorm(
-    H^(l,t-1) + MultiHead(H^(l,t-1), H^(l-1,t), H^(l-1,t))
-))
-
-Recurrence allows:
-- Variable computation depth based on problem difficulty
-- Emergent planning through iterative refinement
-- Self-modification of reasoning process
+Hailo Memory
+├── compiled neural graphs
+├── quantized model state
+├── intermediate tensors
+├── accelerator scratch buffers
+└── supported cache/state structures
 ```
 
 ---
 
-## Implementation
+# 4. Meta Muse AI Agent Design
 
-### 6.1 Core System Code
+## 4.1 Reflective Cognitive Architecture
+
+The Meta Muse agent is structured as a set of interacting cognitive subsystems rather than a single inference pass.
+
+```mermaid
+flowchart TB
+
+    PERCEPTION["PERCEPTION MODULE"]
+
+    MEMORY["MEMORY MODULE"]
+
+    REASON["REASONING ENGINE"]
+
+    META["META-COGNITIVE CONTROLLER"]
+
+    GOAL["GOAL FORMATION"]
+
+    LEARN["LEARNING MODULE"]
+
+    ACTION["ACTION EXECUTOR"]
+
+    PERCEPTION --> META
+    MEMORY --> META
+    REASON --> META
+
+    META --> GOAL
+    META --> LEARN
+    META --> ACTION
+
+    ACTION --> PERCEPTION
+
+    LEARN --> MEMORY
+    LEARN --> REASON
+
+    MEMORY <--> REASON
+```
+
+---
+
+## 4.2 Agent State Representation
+
+The agent maintains a continuous cognitive state:
+
+```math
+S(t)
+=
+[
+P(t),
+M(t),
+G(t),
+E(t),
+C(t)
+]
+```
+
+where:
+
+```math
+P(t) \in \mathbb{R}^{d_p}
+```
+
+is perceptual state,
+
+```math
+M(t) \in \mathbb{R}^{d_m}
+```
+
+is memory context,
+
+```math
+G(t) \in \mathbb{R}^{d_g}
+```
+
+is goal state,
+
+```math
+E(t) \in \mathbb{R}^{d_e}
+```
+
+is affective or internal regulatory state, and:
+
+```math
+C(t) \in \mathbb{R}^{d_c}
+```
+
+represents confidence or uncertainty.
+
+Example dimensions:
+
+```text
+d_p = 2048
+d_m = 4096
+d_g = 1024
+d_e = 512
+d_c = 256
+```
+
+Total conceptual state dimension:
+
+```math
+d_s
+=
+d_p+d_m+d_g+d_e+d_c
+```
+
+Therefore:
+
+```math
+d_s
+=
+2048+4096+1024+512+256
+=
+7936
+```
+
+These dimensions are architectural design parameters rather than fixed requirements.
+
+---
+
+## 4.3 Cognitive Flow
+
+```mermaid
+flowchart LR
+
+    OBS["Observation"]
+
+    ENC["Encode"]
+
+    WM["Working Memory"]
+
+    MEM["Long-Term Memory"]
+
+    REASON["Reason"]
+
+    META["Reflect"]
+
+    GOAL["Select Goal"]
+
+    PLAN["Plan"]
+
+    EXEC["Execute"]
+
+    RESULT["Observe Result"]
+
+    LEARN["Learn"]
+
+    OBS --> ENC
+    ENC --> WM
+
+    MEM --> WM
+    WM --> REASON
+
+    REASON --> META
+    META --> GOAL
+
+    GOAL --> PLAN
+    PLAN --> EXEC
+
+    EXEC --> RESULT
+    RESULT --> LEARN
+
+    LEARN --> MEM
+    LEARN --> WM
+```
+
+---
+
+# 5. Mathematical Foundations
+
+## 5.1 Attention
+
+Scaled dot-product attention:
+
+```math
+\operatorname{Attention}(Q,K,V)
+=
+\operatorname{softmax}
+\left(
+\frac{QK^T}{\sqrt{d_k}}
+\right)
+V
+```
+
+Multi-head attention:
+
+```math
+\operatorname{MultiHead}(Q,K,V)
+=
+\operatorname{Concat}
+(
+head_1,\ldots,head_h
+)
+W^O
+```
+
+where:
+
+```math
+head_i
+=
+\operatorname{Attention}
+(
+QW_i^Q,
+KW_i^K,
+VW_i^V
+)
+```
+
+---
+
+## 5.2 Grouped Query Attention
+
+If:
+
+```text
+h_q  = number of query heads
+h_kv = number of key/value heads
+```
+
+then the sharing ratio is:
+
+```math
+r
+=
+\frac{h_q}{h_{kv}}
+```
+
+For:
+
+```text
+h_q  = 32
+h_kv = 8
+```
+
+the ratio is:
+
+```math
+r=4
+```
+
+This reduces KV-cache requirements compared with full multi-head attention.
+
+---
+
+## 5.3 Approximate KV-Cache Memory
+
+For:
+
+```text
+L = number of layers
+T = context length
+H = number of KV heads
+D = head dimension
+B = bytes per stored value
+```
+
+the approximate key/value cache requirement is:
+
+```math
+M_{KV}
+=
+2LTHDB
+```
+
+The leading factor of `2` accounts for both keys and values.
+
+---
+
+## 5.4 Differentiable Memory
+
+A generic differentiable memory write can be represented as:
+
+```math
+M_t[i]
+=
+M_{t-1}[i]
+\odot
+\left(
+1-w_t^w[i]e_t
+\right)
++
+w_t^w[i]v_t
+```
+
+where:
+
+```text
+w_t^w = write weighting
+e_t   = erase vector
+v_t   = value to write
+```
+
+Content-based memory addressing:
+
+```math
+w_t^c[i]
+=
+\operatorname{softmax}
+\left(
+\beta_t
+D(k_t,M_t[i])
+\right)
+```
+
+Cosine similarity:
+
+```math
+D(u,v)
+=
+\frac{
+u\cdot v
+}{
+\|u\|
+\|v\|
+}
+```
+
+---
+
+## 5.5 Meta-Learning
+
+Model-Agnostic Meta-Learning uses an inner adaptation step:
+
+```math
+\theta'
+=
+\theta
+-
+\alpha
+\nabla_{\theta}
+\mathcal{L}_{task}(f_{\theta})
+```
+
+The meta-objective is:
+
+```math
+\min_{\theta}
+\sum_{\tau \sim p(\mathcal{T})}
+\mathcal{L}_{\tau}
+\left(
+f_{\theta'_{\tau}}
+\right)
+```
+
+with:
+
+```math
+\theta'_{\tau}
+=
+\theta
+-
+\alpha
+\nabla_{\theta}
+\mathcal{L}_{\tau}(f_{\theta})
+```
+
+---
+
+## 5.6 Global Workspace
+
+A Global Workspace-inspired architecture can be represented as:
+
+```text
+Inputs
+  ↓
+Competition
+  ↓
+Selection
+  ↓
+Global Broadcast
+  ↓
+Specialized Modules
+```
+
+For candidate cognitive representation:
+
+```math
+x_i
+```
+
+define activation:
+
+```math
+A_i
+=
+w_s S_i
++
+w_p P_i
++
+w_n N_i
++
+w_g G_i
+```
+
+where:
+
+```text
+S_i = salience
+P_i = priority
+N_i = novelty
+G_i = goal relevance
+```
+
+Select:
+
+```math
+i^*
+=
+\arg\max_i A_i
+```
+
+The winner is broadcast to participating modules.
+
+---
+
+## 5.7 Recurrent Cognitive Depth
+
+Instead of using fixed reasoning depth for every problem, the architecture can iteratively refine an internal state.
+
+```math
+H^{(l,t)}
+=
+H^{(l,t-1)}
++
+F_l
+\left(
+H^{(l-1,t)},
+H^{(l,t-1)}
+\right)
+```
+
+Iterative computation continues until either:
+
+```math
+\|
+H^{(t)}
+-
+H^{(t-1)}
+\|
+<
+\epsilon
+```
+
+or:
+
+```math
+t
+\ge
+t_{\max}
+```
+
+This allows easy tasks to stop early while harder tasks receive additional computation.
+
+---
+
+# 6. Implementation
+
+## 6.1 Core System Prototype
 
 ```python
 #!/usr/bin/env python3
 """
-RuneForgeAI: Hliðskjálf - Meta Muse AGI Agent
-Hardware Target: Raspberry Pi 5 + Hailo 10 (16GB + 8GB)
+RuneForgeAI: Project Hliðskjálf
+Meta Muse AGI-Oriented Cognitive Prototype
+
+Hardware target:
+- Raspberry Pi 5
+- Hailo neural accelerator
+
+NOTE:
+This is an architectural research prototype.
+Actual Hailo deployment requires model/runtime compatibility with the
+installed Hailo software stack.
 """
 
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Optional, List, Dict, Tuple, Any
+
+import numpy as np
 import torch
 import torch.nn as nn
-import hailo_platform as hailo
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Tuple
-import numpy as np
-from enum import Enum, auto
+import torch.nn.functional as F
 
-# ─────────────────────────────────────────────────────────────────
+
+# =====================================================================
 # CONFIGURATION
-# ─────────────────────────────────────────────────────────────────
+# =====================================================================
 
 @dataclass
 class HlidhskjalfConfig:
-    """System configuration aligned with hardware constraints"""
-    
-    # Hardware specs
+
+    # Hardware
     pi_ram_gb: int = 16
     hailo_ram_gb: int = 8
     cpu_cores: int = 4
-    
-    # Model architecture
-    d_model: int = 2048          # Hidden dimension
-    n_heads: int = 32            # Attention heads
-    n_layers: int = 24           # Transformer layers
-    n_kv_heads: int = 8          # GQA compression ratio: 4:1
-    vocab_size: int = 32000      # Token vocabulary
-    
-    # Memory architecture
-    max_seq_len: int = 32768     # Context window
-    memory_slots: int = 1024     # External memory locations
-    memory_dim: int = 2048       # Memory vector dimension
-    
-    # Cognitive parameters
-    n_cognitive_modules: int = 7  # Perception, Memory, Reasoning, etc.
-    meta_depth: int = 3          # Levels of meta-cognition
-    
-    # Optimization
+
+    # Model
+    d_model: int = 2048
+    n_heads: int = 32
+    n_layers: int = 24
+    n_kv_heads: int = 8
+    vocab_size: int = 32000
+
+    # Context
+    max_seq_len: int = 32768
+
+    # External memory
+    memory_slots: int = 1024
+    memory_dim: int = 2048
+
+    # Cognitive architecture
+    n_cognitive_modules: int = 7
+    meta_depth: int = 3
+
+    # Runtime
     use_hailo: bool = True
-    quantization: str = "int8"   # int8, fp16
+    quantization: str = "int8"
     batch_size: int = 1
-    
-    # Hliðskjálf specific
-    worlds: List[str] = None     # Nine worlds as compute nodes
-    
-    def __post_init__(self):
-        if self.worlds is None:
-            self.worlds = [
-                "Asgard",    # High-level planning
-                "Vanaheim",  # Creativity & generation  
-                "Alfheim",   # Light/perception tasks
-                "Midgard",   # Human interaction
-                "Jotunheim", # Large-scale computation
-                "Muspelheim",# Fire/transformations
-                "Niflheim",  # Cold storage/archive
-                "Svartalfheim",# Craft/detail work
-                "Helheim"    # Error handling/fallback
-            ]
+
+    worlds: List[str] = field(
+        default_factory=lambda: [
+            "Asgard",
+            "Vanaheim",
+            "Alfheim",
+            "Midgard",
+            "Jotunheim",
+            "Muspelheim",
+            "Niflheim",
+            "Svartalfheim",
+            "Helheim",
+        ]
+    )
+
+    @property
+    def head_dim(self) -> int:
+        return self.d_model // self.n_heads
 
 
-# ─────────────────────────────────────────────────────────────────
+# =====================================================================
 # NEURAL COMPONENTS
-# ─────────────────────────────────────────────────────────────────
+# =====================================================================
 
 class RMSNorm(nn.Module):
-    """Root Mean Square Layer Normalization"""
-    
-    def __init__(self, dim: int, eps: float = 1e-6):
+
+    def __init__(
+        self,
+        dim: int,
+        eps: float = 1e-6
+    ):
         super().__init__()
+
         self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps) * self.weight
+
+        self.weight = nn.Parameter(
+            torch.ones(dim)
+        )
+
+    def forward(
+        self,
+        x: torch.Tensor
+    ) -> torch.Tensor:
+
+        rms = torch.rsqrt(
+            x.pow(2).mean(
+                dim=-1,
+                keepdim=True
+            )
+            + self.eps
+        )
+
+        return (
+            x
+            * rms
+            * self.weight
+        )
 
 
 class RotaryPositionalEmbedding(nn.Module):
-    """RoPE for relative positional encoding"""
-    
-    def __init__(self, dim: int, max_seq_len: int = 32768, base: float = 10000.0):
+
+    def __init__(
+        self,
+        dim: int,
+        max_seq_len: int = 32768,
+        base: float = 10000.0
+    ):
         super().__init__()
-        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
-        self.register_buffer('inv_freq', inv_freq)
-        self.max_seq_len = max_seq_len
-        self.dim = dim
-        
-    def forward(self, seq_len: int, device: torch.device):
-        t = torch.arange(seq_len, device=device).type_as(self.inv_freq)
-        freqs = torch.einsum('i,j->ij', t, self.inv_freq)
-        emb = torch.cat((freqs, freqs), dim=-1)
-        return emb.cos(), emb.sin()
+
+        inv_freq = (
+            1.0
+            /
+            (
+                base
+                ** (
+                    torch.arange(
+                        0,
+                        dim,
+                        2
+                    ).float()
+                    / dim
+                )
+            )
+        )
+
+        self.register_buffer(
+            "inv_freq",
+            inv_freq
+        )
+
+        self.max_seq_len = (
+            max_seq_len
+        )
+
+    def forward(
+        self,
+        seq_len: int,
+        device: torch.device
+    ):
+
+        positions = torch.arange(
+            seq_len,
+            device=device,
+            dtype=self.inv_freq.dtype
+        )
+
+        frequencies = torch.einsum(
+            "i,j->ij",
+            positions,
+            self.inv_freq
+        )
+
+        embedding = torch.cat(
+            (
+                frequencies,
+                frequencies
+            ),
+            dim=-1
+        )
+
+        return (
+            embedding.cos(),
+            embedding.sin()
+        )
 
 
-def apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
-    """Apply rotary embeddings to input tensor"""
-    x1, x2 = x[..., :x.shape[-1] // 2], x[..., x.shape[-1] // 2:]
-    rotated = torch.cat([-x2, x1], dim=-1)
-    return x * cos + rotated * sin
+def rotate_half(
+    x: torch.Tensor
+) -> torch.Tensor:
+
+    half = (
+        x.shape[-1]
+        // 2
+    )
+
+    x1 = x[..., :half]
+    x2 = x[..., half:]
+
+    return torch.cat(
+        (
+            -x2,
+            x1
+        ),
+        dim=-1
+    )
+
+
+def apply_rotary_emb(
+    x: torch.Tensor,
+    cos: torch.Tensor,
+    sin: torch.Tensor
+) -> torch.Tensor:
+
+    while cos.ndim < x.ndim:
+        cos = cos.unsqueeze(0)
+        sin = sin.unsqueeze(0)
+
+    return (
+        x * cos
+        +
+        rotate_half(x) * sin
+    )
 
 
 class GroupedQueryAttention(nn.Module):
-    """
-    Grouped Query Attention with KV-cache optimization
-    Memory: O(n_layers × seq_len × d_model × 2 bytes) with int8
-    """
-    
-    def __init__(self, config: HlidhskjalfConfig):
+
+    def __init__(
+        self,
+        config: HlidhskjalfConfig
+    ):
         super().__init__()
-        self.n_heads = config.n_heads
-        self.n_kv_heads = config.n_kv_heads
-        self.head_dim = config.d_model // config.n_heads
-        self.scale = self.head_dim ** -0.5
-        
-        # Query projection (full heads)
-        self.wq = nn.Linear(config.d_model, config.n_heads * self.head_dim, bias=False)
-        
-        # Key/Value projections (compressed heads)
-        self.wk = nn.Linear(config.d_model, config.n_kv_heads * self.head_dim, bias=False)
-        self.wv = nn.Linear(config.d_model, config.n_kv_heads * self.head_dim, bias=False)
-        
-        # Output projection
-        self.wo = nn.Linear(config.n_heads * self.head_dim, config.d_model, bias=False)
-        
-        self.rope = RotaryPositionalEmbedding(self.head_dim, config.max_seq_len)
-        
-        # KV-cache for inference
-        self.cache_k = None
-        self.cache_v = None
-        self.cache_len = 0
-        
-    def forward(
-        self, 
-        x: torch.Tensor,
-        mask: Optional[torch.Tensor] = None,
-        use_cache: bool = False
-    ) -> torch.Tensor:
-        bsz, seqlen, _ = x.shape
-        
-        # Project to Q, K, V
-        xq = self.wq(x).view(bsz, seqlen, self.n_heads, self.head_dim)
-        xk = self.wk(x).view(bsz, seqlen, self.n_kv_heads, self.head_dim)
-        xv = self.wv(x).view(bsz, seqlen, self.n_kv_heads, self.head_dim)
-        
-        # Apply RoPE
-        cos, sin = self.rope(seqlen + self.cache_len, x.device)
-        xq = apply_rotary_emb(xq, cos[:seqlen], sin[:seqlen])
-        xk = apply_rotary_emb(xk, cos[:seqlen], sin[:seqlen])
-        
-        # Update KV-cache if using
-        if use_cache:
-            if self.cache_k is None:
-                self.cache_k = xk
-                self.cache_v = xv
-            else:
-                xk = torch.cat([self.cache_k, xk], dim=1)
-                xv = torch.cat([self.cache_v, xv], dim=1)
-                self.cache_k = xk
-                self.cache_v = xv
-            self.cache_len += seqlen
-        
-        # Repeat K/V heads for GQA
-        xk = xk.repeat_interleave(self.n_heads // self.n_kv_heads, dim=2)
-        xv = xv.repeat_interleave(self.n_heads // self.n_kv_heads, dim=2)
-        
-        # Scaled dot-product attention
-        scores = torch.matmul(xq, xk.transpose(-2, -1)) * self.scale
-        
-        if mask is not None:
-            scores = scores + mask
-            
-        attn = torch.softmax(scores, dim=-1)
-        output = torch.matmul(attn, xv)
-        
-        # Reshape and project
-        output = output.transpose(1, 2).contiguous().view(bsz, seqlen, -1)
-        return self.wo(output)
 
-
-class SwiGLU(nn.Module):
-    """SwiGLU activation for improved efficiency"""
-    
-    def __init__(self, dim: int, hidden_dim: int):
-        super().__init__()
-        self.w1 = nn.Linear(dim, hidden_dim, bias=False)
-        self.w2 = nn.Linear(hidden_dim, dim, bias=False)
-        self.w3 = nn.Linear(dim, hidden_dim, bias=False)
-        
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.w2(torch.nn.functional.silu(self.w1(x)) * self.w3(x))
-
-
-class TransformerBlock(nn.Module):
-    """Single transformer block with pre-normalization"""
-    
-    def __init__(self, config: HlidhskjalfConfig):
-        super().__init__()
-        self.attention_norm = RMSNorm(config.d_model)
-        self.attention = GroupedQueryAttention(config)
-        
-        self.ffn_norm = RMSNorm(config.d_model)
-        self.ffn = SwiGLU(
-            config.d_model,
-            int(8/3 * config.d_model)  # SwiGLU hidden dim
+        self.n_heads = (
+            config.n_heads
         )
-        
+
+        self.n_kv_heads = (
+            config.n_kv_heads
+        )
+
+        self.head_dim = (
+            config.head_dim
+        )
+
+        self.scale = (
+            self.head_dim
+            ** -0.5
+        )
+
+        self.wq = nn.Linear(
+            config.d_model,
+            config.n_heads
+            * self.head_dim,
+            bias=False
+        )
+
+        self.wk = nn.Linear(
+            config.d_model,
+            config.n_kv_heads
+            * self.head_dim,
+            bias=False
+        )
+
+        self.wv = nn.Linear(
+            config.d_model,
+            config.n_kv_heads
+            * self.head_dim,
+            bias=False
+        )
+
+        self.wo = nn.Linear(
+            config.n_heads
+            * self.head_dim,
+            config.d_model,
+            bias=False
+        )
+
+        self.rope = (
+            RotaryPositionalEmbedding(
+                self.head_dim,
+                config.max_seq_len
+            )
+        )
+
     def forward(
         self,
         x: torch.Tensor,
-        mask: Optional[torch.Tensor] = None,
-        use_cache: bool = False
+        mask: Optional[
+            torch.Tensor
+        ] = None
     ) -> torch.Tensor:
-        # Self-attention with residual
-        h = x + self.attention(self.attention_norm(x), mask, use_cache)
-        
-        # FFN with residual
-        out = h + self.ffn(self.ffn_norm(h))
-        return out
+
+        batch_size, seq_len, _ = (
+            x.shape
+        )
+
+        q = self.wq(x).view(
+            batch_size,
+            seq_len,
+            self.n_heads,
+            self.head_dim
+        )
+
+        k = self.wk(x).view(
+            batch_size,
+            seq_len,
+            self.n_kv_heads,
+            self.head_dim
+        )
+
+        v = self.wv(x).view(
+            batch_size,
+            seq_len,
+            self.n_kv_heads,
+            self.head_dim
+        )
+
+        cos, sin = self.rope(
+            seq_len,
+            x.device
+        )
+
+        q = apply_rotary_emb(
+            q,
+            cos,
+            sin
+        )
+
+        k = apply_rotary_emb(
+            k,
+            cos,
+            sin
+        )
+
+        repeat_factor = (
+            self.n_heads
+            // self.n_kv_heads
+        )
+
+        k = k.repeat_interleave(
+            repeat_factor,
+            dim=2
+        )
+
+        v = v.repeat_interleave(
+            repeat_factor,
+            dim=2
+        )
+
+        q = q.transpose(
+            1,
+            2
+        )
+
+        k = k.transpose(
+            1,
+            2
+        )
+
+        v = v.transpose(
+            1,
+            2
+        )
+
+        scores = (
+            torch.matmul(
+                q,
+                k.transpose(
+                    -2,
+                    -1
+                )
+            )
+            * self.scale
+        )
+
+        if mask is not None:
+            scores = (
+                scores
+                + mask
+            )
+
+        attention = torch.softmax(
+            scores,
+            dim=-1
+        )
+
+        output = torch.matmul(
+            attention,
+            v
+        )
+
+        output = (
+            output
+            .transpose(
+                1,
+                2
+            )
+            .contiguous()
+            .view(
+                batch_size,
+                seq_len,
+                -1
+            )
+        )
+
+        return self.wo(
+            output
+        )
 
 
-# ─────────────────────────────────────────────────────────────────
-# EXTERNAL MEMORY (DNC)
-# ─────────────────────────────────────────────────────────────────
+class SwiGLU(nn.Module):
 
-class DifferentiableNeuralComputer(nn.Module):
-    """
-    External memory module for long-term knowledge storage
-    Implements Graves et al. 2016 with optimizations for edge deployment
-    """
-    
-    def __init__(self, config: HlidhskjalfConfig):
+    def __init__(
+        self,
+        dim: int,
+        hidden_dim: int
+    ):
         super().__init__()
-        self.N = config.memory_slots      # Memory locations
-        self.W = config.memory_dim        # Vector size
-        
-        # Memory matrix M_t[i,j] - stored as parameter for differentiability
-        self.register_buffer('memory', torch.zeros(1, self.N, self.W))
-        
-        # Linkage matrix for temporal connections
-        self.register_buffer('linkage', torch.zeros(1, self.N, self.N))
-        
-        # Usage vector for allocation
-        self.register_buffer('usage', torch.zeros(1, self.N))
-        
-        # Controller
-        controller_dim = config.d_model
-        self.controller = nn.LSTMCell(controller_dim, controller_dim)
-        
-        # Output layers for read/write heads
-        self.read_heads = 4
-        self.write_heads = 1
-        
-        # Interface vector: [key, strength, gate, shift, sharpen, erase, add] per head
-        self.interface_size = self.W + 1 + 1 + 3 + 1 + self.W + self.W
-        self.interface = nn.Linear(controller_dim, 
-                                   self.read_heads * self.W + 
-                                   self.write_heads * self.interface_size)
-        
-    def content_addressing(
-        self, 
-        key: torch.Tensor, 
-        strength: torch.Tensor
-    ) -> torch.Tensor:
-        """Content-based memory addressing"""
-        # key: [batch, W], memory: [batch, N, W]
-        similarity = torch.nn.functional.cosine_similarity(
-            key.unsqueeze(1), self.memory, dim=-1
+
+        self.gate = nn.Linear(
+            dim,
+            hidden_dim,
+            bias=False
         )
-        return torch.softmax(similarity * strength, dim=-1)
-    
+
+        self.up = nn.Linear(
+            dim,
+            hidden_dim,
+            bias=False
+        )
+
+        self.down = nn.Linear(
+            hidden_dim,
+            dim,
+            bias=False
+        )
+
     def forward(
-        self, 
-        x: torch.Tensor,
-        read_mode: str = "content"
-    ) -> Tuple[torch.Tensor, Dict]:
-        """
-        Process input through DNC
-        Returns: (read_vectors, info_dict)
-        """
-        batch_size = x.shape[0]
-        
-        # Read from memory
-        read_weights = self.content_addressing(
-            self.interface(x)[:, :self.W], 
-            torch.ones(batch_size, 1).to(x.device)
+        self,
+        x: torch.Tensor
+    ) -> torch.Tensor:
+
+        return self.down(
+            F.silu(
+                self.gate(x)
+            )
+            * self.up(x)
         )
-        
-        read_vectors = torch.matmul(read_weights.unsqueeze(1), self.memory)
-        read_vectors = read_vectors.squeeze(1)
-        
-        # Update memory (simplified write)
-        # In full implementation: allocation, write weighting, erase+add
-        
-        return read_vectors, {
-            'memory': self.memory,
-            'read_weights': read_weights,
-            'usage': self.usage
-        }
 
 
-# ─────────────────────────────────────────────────────────────────
-# META MUSE AGENT
-# ─────────────────────────────────────────────────────────────────
+class TransformerBlock(nn.Module):
+
+    def __init__(
+        self,
+        config: HlidhskjalfConfig
+    ):
+        super().__init__()
+
+        self.attention_norm = (
+            RMSNorm(
+                config.d_model
+            )
+        )
+
+        self.attention = (
+            GroupedQueryAttention(
+                config
+            )
+        )
+
+        hidden_dim = int(
+            8
+            / 3
+            * config.d_model
+        )
+
+        self.ffn_norm = (
+            RMSNorm(
+                config.d_model
+            )
+        )
+
+        self.ffn = SwiGLU(
+            config.d_model,
+            hidden_dim
+        )
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        mask: Optional[
+            torch.Tensor
+        ] = None
+    ) -> torch.Tensor:
+
+        h = (
+            x
+            +
+            self.attention(
+                self.attention_norm(x),
+                mask
+            )
+        )
+
+        return (
+            h
+            +
+            self.ffn(
+                self.ffn_norm(h)
+            )
+        )
+
+
+# =====================================================================
+# EXTERNAL MEMORY
+# =====================================================================
+
+class DifferentiableMemory(nn.Module):
+
+    def __init__(
+        self,
+        config: HlidhskjalfConfig
+    ):
+        super().__init__()
+
+        self.num_slots = (
+            config.memory_slots
+        )
+
+        self.width = (
+            config.memory_dim
+        )
+
+        self.register_buffer(
+            "memory",
+            torch.zeros(
+                1,
+                self.num_slots,
+                self.width
+            )
+        )
+
+        self.register_buffer(
+            "usage",
+            torch.zeros(
+                1,
+                self.num_slots
+            )
+        )
+
+        self.key_projection = nn.Linear(
+            config.d_model,
+            self.width
+        )
+
+    def content_address(
+        self,
+        key: torch.Tensor,
+        strength: float = 1.0
+    ) -> torch.Tensor:
+
+        memory = self.memory.expand(
+            key.shape[0],
+            -1,
+            -1
+        )
+
+        similarity = (
+            F.cosine_similarity(
+                key.unsqueeze(1),
+                memory,
+                dim=-1
+            )
+        )
+
+        return torch.softmax(
+            similarity
+            * strength,
+            dim=-1
+        )
+
+    def forward(
+        self,
+        x: torch.Tensor
+    ) -> Tuple[
+        torch.Tensor,
+        Dict[str, torch.Tensor]
+    ]:
+
+        key = self.key_projection(
+            x
+        )
+
+        weights = (
+            self.content_address(
+                key
+            )
+        )
+
+        memory = self.memory.expand(
+            x.shape[0],
+            -1,
+            -1
+        )
+
+        read_vector = torch.bmm(
+            weights.unsqueeze(1),
+            memory
+        ).squeeze(1)
+
+        return (
+            read_vector,
+            {
+                "read_weights":
+                    weights,
+
+                "usage":
+                    self.usage,
+
+                "memory":
+                    memory
+            }
+        )
+
+
+# =====================================================================
+# COGNITIVE MODULES
+# =====================================================================
 
 class CognitiveModule(Enum):
+
     PERCEPTION = auto()
     MEMORY = auto()
     REASONING = auto()
@@ -600,544 +1508,574 @@ class CognitiveModule(Enum):
 
 
 class MetaMuseAgent(nn.Module):
-    """
-    The Meta Muse AGI Agent
-    Implements reflective cognitive architecture on edge hardware
-    """
-    
-    def __init__(self, config: HlidhskjalfConfig):
+
+    def __init__(
+        self,
+        config: HlidhskjalfConfig
+    ):
         super().__init__()
+
         self.config = config
-        
-        # Token embedding
-        self.token_emb = nn.Embedding(config.vocab_size, config.d_model)
-        
-        # Transformer backbone (runs on Hailo when possible)
-        self.layers = nn.ModuleList([
-            TransformerBlock(config) for _ in range(config.n_layers)
-        ])
-        
-        # External memory (DNC)
-        self.external_memory = DifferentiableNeuralComputer(config)
-        
-        # Cognitive modules (specialized heads)
-        self.cognitive_heads = nn.ModuleDict({
-            'perception': nn.Linear(config.d_model, config.d_model),
-            'memory_gate': nn.Linear(config.d_model, 2),  # store/retrieve
-            'reasoning': nn.Linear(config.d_model, config.d_model),
-            'goal': nn.Linear(config.d_model, config.d_model // 2),
-            'action': nn.Linear(config.d_model, config.vocab_size),
-            'meta': nn.Linear(config.d_model, config.n_cognitive_modules),
-        })
-        
-        # Global workspace for consciousness
-        self.workspace = nn.Parameter(torch.zeros(1, config.d_model))
-        self.workspace_proj = nn.Linear(config.d_model * 2, config.d_model)
-        
-        # Output norm and projection
-        self.norm = RMSNorm(config.d_model)
-        self.output = nn.Linear(config.d_model, config.vocab_size, bias=False)
-        
-        # Tie weights
-        self.output.weight = self.token_emb.weight
-        
-        # Hailo compiler placeholder
-        self.hailo_model = None
-        
+
+        self.token_embedding = (
+            nn.Embedding(
+                config.vocab_size,
+                config.d_model
+            )
+        )
+
+        self.layers = nn.ModuleList(
+            [
+                TransformerBlock(
+                    config
+                )
+                for _ in range(
+                    config.n_layers
+                )
+            ]
+        )
+
+        self.external_memory = (
+            DifferentiableMemory(
+                config
+            )
+        )
+
+        self.memory_projection = (
+            nn.Linear(
+                config.memory_dim,
+                config.d_model
+            )
+        )
+
+        self.cognitive_heads = (
+            nn.ModuleDict(
+                {
+                    "perception":
+                        nn.Linear(
+                            config.d_model,
+                            config.d_model
+                        ),
+
+                    "reasoning":
+                        nn.Linear(
+                            config.d_model,
+                            config.d_model
+                        ),
+
+                    "goal":
+                        nn.Linear(
+                            config.d_model,
+                            config.d_model
+                        ),
+
+                    "meta":
+                        nn.Linear(
+                            config.d_model,
+                            config.n_cognitive_modules
+                        )
+                }
+            )
+        )
+
+        self.workspace_projection = (
+            nn.Linear(
+                config.d_model
+                * 2,
+                config.d_model
+            )
+        )
+
+        self.norm = RMSNorm(
+            config.d_model
+        )
+
+        self.output = nn.Linear(
+            config.d_model,
+            config.vocab_size,
+            bias=False
+        )
+
+        self.output.weight = (
+            self.token_embedding.weight
+        )
+
     def global_workspace_broadcast(
         self,
-        module_outputs: Dict[CognitiveModule, torch.Tensor],
-        consciousness_threshold: float = 0.5
+        module_outputs: Dict[
+            CognitiveModule,
+            torch.Tensor
+        ],
+        previous_workspace:
+            Optional[torch.Tensor]
+            = None
     ) -> torch.Tensor:
-        """
-        Implement Global Workspace Theory
-        Selects winning coalition and broadcasts to all modules
-        """
-        # Compute salience scores
-        saliences = {}
-        for module, output in module_outputs.items():
-            salience = torch.norm(output, dim=-1, keepdim=True)
-            saliences[module] = salience
-            
-        # Competition (softmax over modules)
-        total_salience = sum(saliences.values())
-        attention_weights = {
-            m: s / total_salience for m, s in saliences.items()
-        }
-        
-        # Form global workspace content (weighted sum)
-        workspace_content = sum(
-            attention_weights[m] * module_outputs[m] 
-            for m in module_outputs.keys()
+
+        outputs = list(
+            module_outputs.values()
         )
-        
-        # Update persistent workspace
-        self.workspace = self.workspace_proj(
-            torch.cat([self.workspace, workspace_content], dim=-1)
+
+        stacked = torch.stack(
+            outputs,
+            dim=1
         )
-        
-        return self.workspace
-    
+
+        salience = torch.norm(
+            stacked,
+            dim=-1
+        )
+
+        weights = torch.softmax(
+            salience,
+            dim=1
+        ).unsqueeze(-1)
+
+        workspace_content = (
+            weights
+            * stacked
+        ).sum(
+            dim=1
+        )
+
+        if previous_workspace is None:
+
+            previous_workspace = (
+                torch.zeros_like(
+                    workspace_content
+                )
+            )
+
+        workspace = (
+            self.workspace_projection(
+                torch.cat(
+                    (
+                        previous_workspace,
+                        workspace_content
+                    ),
+                    dim=-1
+                )
+            )
+        )
+
+        return workspace
+
     def meta_cognitive_loop(
         self,
-        x: torch.Tensor,
-        depth: int = 3
+        state: torch.Tensor,
+        depth: int = 3,
+        epsilon: float = 0.01
     ) -> torch.Tensor:
-        """
-        Recursive self-reflection for complex reasoning
-        Each iteration refines the thought process
-        """
-        thought = x
-        
-        for i in range(depth):
-            # Self-query: "What do I know? What should I do?"
-            meta_query = self.cognitive_heads['meta'](thought)
-            meta_attention = torch.softmax(meta_query, dim=-1)
-            
-            # Select cognitive strategy based on meta-attention
-            strategy_weights = meta_attention.unsqueeze(-1)
-            
-            # Apply selected reasoning strategy
-            refined = self.cognitive_heads['reasoning'](thought)
-            thought = thought + 0.1 * refined  # Residual update
-            
-            # Check for convergence (simplified)
-            if torch.norm(refined) < 0.01:
+
+        thought = state
+
+        for _ in range(
+            depth
+        ):
+
+            refined = (
+                self.cognitive_heads[
+                    "reasoning"
+                ](
+                    thought
+                )
+            )
+
+            delta = (
+                0.1
+                * refined
+            )
+
+            thought = (
+                thought
+                + delta
+            )
+
+            if (
+                torch.norm(
+                    delta
+                ).item()
+                < epsilon
+            ):
                 break
-                
+
         return thought
-    
+
     def forward(
         self,
         tokens: torch.Tensor,
-        use_cache: bool = False,
         return_workspace: bool = False
-    ) -> Dict[str, torch.Tensor]:
-        """
-        Forward pass through Meta Muse agent
-        
-        Args:
-            tokens: Input token IDs [batch, seq_len]
-            use_cache: Whether to use KV-caching for inference
-            return_workspace: Whether to return workspace state
-            
-        Returns:
-            Dictionary with logits, hidden states, and optionally workspace
-        """
-        batch_size, seq_len = tokens.shape
-        
-        # Embed tokens
-        h = self.token_emb(tokens)
-        
-        # Create causal mask
-        mask = torch.triu(
-            torch.full((seq_len, seq_len), float('-inf')), diagonal=1
-        ).to(tokens.device)
-        
-        # Transformer layers
-        for layer in self.layers:
-            h = layer(h, mask, use_cache)
-        
-        # Access external memory
-        mem_read, mem_info = self.external_memory(h[:, -1, :])
-        
-        # Combine with hidden state
-        h_combined = h + mem_read.unsqueeze(1)
-        
-        # Run cognitive modules
-        module_outputs = {
-            CognitiveModule.PERCEPTION: self.cognitive_heads['perception'](h_combined[:, -1, :]),
-            CognitiveModule.REASONING: self.cognitive_heads['reasoning'](h_combined[:, -1, :]),
-            CognitiveModule.GOAL_FORMATION: self.cognitive_heads['goal'](h_combined[:, -1, :]),
-        }
-        
-        # Global workspace integration
-        workspace = self.global_workspace_broadcast(module_outputs)
-        
-        # Meta-cognitive refinement
-        refined = self.meta_cognitive_loop(workspace)
-        
-        # Final output
-        h_out = self.norm(refined)
-        logits = self.output(h_out)
-        
-        output = {
-            'logits': logits,
-            'hidden': h_out,
-            'memory_info': mem_info,
-        }
-        
-        if return_workspace:
-            output['workspace'] = workspace
-            
-        return output
-    
-    def compile_for_hailo(self):
-        """
-        Compile model for Hailo NPU acceleration
-        Requires Hailo Dataflow Compiler
-        """
-        try:
-            from hailo_sdk_client import ClientRunner
-            
-            # Export to ONNX
-            dummy_input = torch.randint(0, self.config.vocab_size, (1, 512))
-            torch.onnx.export(
-                self,
-                dummy_input,
-                "meta_muse.onnx",
-                input_names=['tokens'],
-                output_names=['logits', 'hidden'],
-                dynamic_axes={'tokens': {0: 'batch_size', 1: 'sequence'}}
+    ) -> Dict[
+        str,
+        torch.Tensor
+    ]:
+
+        _, seq_len = (
+            tokens.shape
+        )
+
+        hidden = (
+            self.token_embedding(
+                tokens
             )
-            
-            # Compile with Hailo
-            runner = ClientRunner(hw_arch="hailo10")
-            runner.translate_onnx_model("meta_muse.onnx", "meta_muse")
-            runner.optimize()
-            runner.compile()
-            
-            self.hailo_model = runner.get_hailo_model()
-            print("✓ Model compiled for Hailo NPU")
-            
-        except Exception as e:
-            print(f"✗ Hailo compilation failed: {e}")
-            print("  Falling back to CPU inference")
-
-
-# ─────────────────────────────────────────────────────────────────
-# HAILO INTEGRATION
-# ─────────────────────────────────────────────────────────────────
-
-class HailoInferenceEngine:
-    """
-    Optimized inference using Hailo-10 NPU
-    Manages memory and batching for edge deployment
-    """
-    
-    def __init__(self, hef_path: str, config: HlidhskjalfConfig):
-        self.config = config
-        
-        # Initialize Hailo device
-        self.device = hailo.Device()
-        self.hef = hailo.HEF(hef_path)
-        
-        # Configure VStreams
-        self.input_vstreams_params = hailo.InputVStream.make(
-            self.hef.get_input_vstream_infos()
         )
-        self.output_vstreams_params = hailo.OutputVStream.make(
-            self.hef.get_output_vstream_infos()
+
+        mask = torch.triu(
+            torch.full(
+                (
+                    seq_len,
+                    seq_len
+                ),
+                float("-inf"),
+                device=tokens.device
+            ),
+            diagonal=1
         )
-        
-        # Create infer model
-        self.infer_model = self.device.create_infer_model(hef_path)
-        self.infer_model.set_batch_size(1)
-        
-        # Memory pools
-        self.input_pool = []
-        self.output_pool = []
-        
-    def infer(self, input_tensor: np.ndarray) -> np.ndarray:
-        """
-        Run inference on Hailo NPU
-        
-        Args:
-            input_tensor: Preprocessed input [batch, seq_len]
-            
-        Returns:
-            Model output logits
-        """
-        # Quantize input to int8
-        input_quantized = self._quantize(input_tensor)
-        
-        # Run inference
-        with self.infer_model.configure() as configured_infer_model:
-            job = configured_infer_model.run(input_quantized)
-            output = job.wait()
-            
-        # Dequantize output
-        return self._dequantize(output)
-    
-    def _quantize(self, x: np.ndarray) -> np.ndarray:
-        """FP32 → INT8 quantization"""
-        # Scale factor from calibration
-        scale = 0.00392  # Typical for normalized inputs
-        return np.clip(x / scale, -128, 127).astype(np.int8)
-    
-    def _dequantize(self, x: np.ndarray) -> np.ndarray:
-        """INT8 → FP32 dequantization"""
-        scale = 0.00431  # From Hailo calibration
-        return x.astype(np.float32) * scale
+
+        mask = (
+            mask
+            .unsqueeze(0)
+            .unsqueeze(0)
+        )
+
+        for layer in self.layers:
+
+            hidden = layer(
+                hidden,
+                mask
+            )
+
+        final_hidden = (
+            hidden[:, -1, :]
+        )
+
+        memory_read, memory_info = (
+            self.external_memory(
+                final_hidden
+            )
+        )
+
+        memory_context = (
+            self.memory_projection(
+                memory_read
+            )
+        )
+
+        combined = (
+            final_hidden
+            + memory_context
+        )
+
+        module_outputs = {
+
+            CognitiveModule.PERCEPTION:
+                self.cognitive_heads[
+                    "perception"
+                ](
+                    combined
+                ),
+
+            CognitiveModule.REASONING:
+                self.cognitive_heads[
+                    "reasoning"
+                ](
+                    combined
+                ),
+
+            CognitiveModule.GOAL_FORMATION:
+                self.cognitive_heads[
+                    "goal"
+                ](
+                    combined
+                )
+        }
+
+        workspace = (
+            self.global_workspace_broadcast(
+                module_outputs
+            )
+        )
+
+        refined = (
+            self.meta_cognitive_loop(
+                workspace,
+                depth=
+                    self.config.meta_depth
+            )
+        )
+
+        normalized = (
+            self.norm(
+                refined
+            )
+        )
+
+        logits = (
+            self.output(
+                normalized
+            )
+        )
+
+        result = {
+            "logits":
+                logits,
+
+            "hidden":
+                normalized,
+
+            "memory_info":
+                memory_info
+        }
+
+        if return_workspace:
+
+            result[
+                "workspace"
+            ] = workspace
+
+        return result
 
 
-# ─────────────────────────────────────────────────────────────────
-# HLIDHSKJALF ORCHESTRATOR
-# ─────────────────────────────────────────────────────────────────
+# =====================================================================
+# HLIÐSKJÁLF ORCHESTRATOR
+# =====================================================================
 
 class HlidhskjalfOrchestrator:
-    """
-    The All-Seeing Throne
-    Manages the Nine Worlds as distributed compute nodes
-    """
-    
-    def __init__(self, config: HlidhskjalfConfig):
-        self.config = config
-        self.agent = MetaMuseAgent(config)
-        
-        # World-specific configurations
+
+    def __init__(
+        self,
+        config: HlidhskjalfConfig
+    ):
+        self.config = (
+            config
+        )
+
+        self.agent = (
+            MetaMuseAgent(
+                config
+            )
+        )
+
         self.world_configs = {
-            "Asgard": {"priority": 1.0, "task": "planning"},
-            "Vanaheim": {"priority": 0.9, "task": "generation"},
-            "Alfheim": {"priority": 0.8, "task": "perception"},
-            "Midgard": {"priority": 0.7, "task": "interaction"},
-            "Jotunheim": {"priority": 0.6, "task": "computation"},
-            "Muspelheim": {"priority": 0.5, "task": "transformation"},
-            "Niflheim": {"priority": 0.4, "task": "storage"},
-            "Svartalfheim": {"priority": 0.3, "task": "crafting"},
-            "Helheim": {"priority": 0.2, "task": "recovery"},
+
+            "Asgard": {
+                "priority": 1.0,
+                "task": "planning"
+            },
+
+            "Vanaheim": {
+                "priority": 0.9,
+                "task": "generation"
+            },
+
+            "Alfheim": {
+                "priority": 0.8,
+                "task": "perception"
+            },
+
+            "Midgard": {
+                "priority": 0.7,
+                "task": "interaction"
+            },
+
+            "Jotunheim": {
+                "priority": 0.6,
+                "task": "computation"
+            },
+
+            "Muspelheim": {
+                "priority": 0.5,
+                "task": "transformation"
+            },
+
+            "Niflheim": {
+                "priority": 0.4,
+                "task": "storage"
+            },
+
+            "Svartalfheim": {
+                "priority": 0.3,
+                "task": "crafting"
+            },
+
+            "Helheim": {
+                "priority": 0.2,
+                "task": "recovery"
+            }
         }
-        
-        # Bifröst data bridge
-        self.message_queue = []
-        self.active_worlds = {}
-        
+
     def dispatch_to_world(
         self,
-        task: Dict,
+        tokens: torch.Tensor,
         world: str
+    ) -> Dict[
+        str,
+        torch.Tensor
+    ]:
+
+        if world not in (
+            self.world_configs
+        ):
+
+            raise KeyError(
+                f"Unknown world: {world}"
+            )
+
+        return self.agent(
+            tokens,
+            return_workspace=True
+        )
+
+    def integrate_worlds(
+        self,
+        responses: Dict[
+            str,
+            Dict[
+                str,
+                torch.Tensor
+            ]
+        ]
     ) -> torch.Tensor:
-        """
-        Send task to specific world (compute node)
-        """
-        config = self.world_configs[world]
-        
-        # Adjust agent parameters based on world
-        if config["task"] == "planning":
-            # Deep reasoning mode
-            output = self.agent(
-                task["input"],
-                return_workspace=True
+
+        module_outputs = {}
+
+        for index, (
+            world,
+            response
+        ) in enumerate(
+            responses.items()
+        ):
+
+            module = (
+                CognitiveModule.REASONING
+                if index == 0
+                else CognitiveModule.PERCEPTION
+                if index == 1
+                else CognitiveModule.GOAL_FORMATION
             )
-        elif config["task"] == "generation":
-            # Creative mode - higher temperature
-            output = self.agent(task["input"])
-        else:
-            output = self.agent(task["input"])
-            
-        return output
-    
-    def yggdrasil_broadcast(self, message: Dict):
-        """
-        Broadcast message across all worlds (data fabric)
-        """
-        for world in self.config.worlds:
-            self.active_worlds[world] = self.dispatch_to_world(message, world)
-    
-    def odins_thought(self, query: str) -> str:
-        """
-        High-level reasoning - The All-Father's wisdom
-        """
-        # Tokenize
-        tokens = self._tokenize(query)
-        
-        # Query all worlds
-        world_responses = {}
-        for world in ["Asgard", "Vanaheim", "Midgard"]:
-            world_responses[world] = self.dispatch_to_world(
-                {"input": tokens, "type": "reasoning"},
-                world
+
+            module_outputs[
+                module
+            ] = response[
+                "hidden"
+            ]
+
+        return (
+            self.agent
+            .global_workspace_broadcast(
+                module_outputs
             )
-        
-        # Integrate through global workspace
-        integrated = self.agent.global_workspace_broadcast({
-            CognitiveModule.REASONING: r["hidden"] 
-            for world, r in world_responses.items()
-        })
-        
-        # Generate response
-        logits = self.agent.output(integrated)
-        response_tokens = torch.argmax(logits, dim=-1)
-        
-        return self._detokenize(response_tokens)
-    
-    def _tokenize(self, text: str) -> torch.Tensor:
-        """Simplified tokenization - use actual tokenizer in production"""
-        # Placeholder - integrate with SentencePiece or TikToken
-        return torch.randint(0, self.config.vocab_size, (1, len(text.split())))
-    
-    def _detokenize(self, tokens: torch.Tensor) -> str:
-        """Simplified detokenization"""
-        return " ".join([f"token_{t}" for t in tokens.tolist()])
-
-
-# ─────────────────────────────────────────────────────────────────
-# TRAINING INFRASTRUCTURE
-# ─────────────────────────────────────────────────────────────────
-
-class AGITrainer:
-    """
-    Training loop for AGI capabilities
-    Implements curriculum learning and meta-learning
-    """
-    
-    def __init__(self, config: HlidhskjalfConfig):
-        self.config = config
-        self.agent = MetaMuseAgent(config)
-        self.optimizer = torch.optim.AdamW(
-            self.agent.parameters(),
-            lr=1e-4,
-            weight_decay=0.1
         )
-        
-    def curriculum_step(
+
+    def reason(
         self,
-        batch: Dict,
-        difficulty: float
-    ) -> Dict[str, float]:
-        """
-        Training step with adaptive difficulty
-        """
-        self.optimizer.zero_grad()
-        
-        # Forward
-        outputs = self.agent(batch["input"])
-        
-        # Multi-task loss
-        prediction_loss = torch.nn.functional.cross_entropy(
-            outputs["logits"],
-            batch["target"]
-        )
-        
-        # Meta-cognitive loss (encourage self-reflection)
-        workspace_variance = torch.var(outputs["workspace"])
-        meta_loss = -torch.log(workspace_variance + 1e-8)  # Encourage diversity
-        
-        # Memory regularization
-        memory_sparsity = torch.mean(
-            torch.abs(outputs["memory_info"]["usage"])
-        )
-        
-        total_loss = (
-            prediction_loss + 
-            0.1 * meta_loss + 
-            0.01 * memory_sparsity
-        )
-        
-        total_loss.backward()
-        self.optimizer.step()
-        
-        return {
-            "loss": total_loss.item(),
-            "pred_loss": prediction_loss.item(),
-            "meta_loss": meta_loss.item(),
+        tokens: torch.Tensor
+    ) -> torch.Tensor:
+
+        selected_worlds = [
+            "Asgard",
+            "Vanaheim",
+            "Midgard"
+        ]
+
+        responses = {
+            world:
+                self.dispatch_to_world(
+                    tokens,
+                    world
+                )
+            for world
+            in selected_worlds
         }
-    
-    def meta_learning_episode(
-        self,
-        tasks: List[Dict],
-        inner_steps: int = 5,
-        inner_lr: float = 0.01
-    ) -> float:
-        """
-        MAML-style meta-learning episode
-        """
-        meta_loss = 0
-        
-        for task in tasks:
-            # Clone parameters for inner loop
-            fast_weights = [p.clone() for p in self.agent.parameters()]
-            
-            # Inner loop adaptation
-            for _ in range(inner_steps):
-                task_loss = self._compute_loss(task, fast_weights)
-                grads = torch.autograd.grad(task_loss, fast_weights, create_graph=True)
-                fast_weights = [w - inner_lr * g for w, g in zip(fast_weights, grads)]
-            
-            # Meta loss on adapted parameters
-            meta_loss += self._compute_loss(task, fast_weights)
-        
-        # Meta-update
-        self.optimizer.zero_grad()
-        meta_loss.backward()
-        self.optimizer.step()
-        
-        return meta_loss.item() / len(tasks)
+
+        integrated = (
+            self.integrate_worlds(
+                responses
+            )
+        )
+
+        return (
+            self.agent.output(
+                integrated
+            )
+        )
 
 
-# ─────────────────────────────────────────────────────────────────
-# MAIN ENTRY POINT
-# ─────────────────────────────────────────────────────────────────
+# =====================================================================
+# MAIN
+# =====================================================================
 
 def main():
-    """Initialize and run Hliðskjálf AGI system"""
-    
-    print("╔═══════════════════════════════════════════════════════════╗")
-    print("║      RUNEFORGE AI: HLIDHSKJALF - AGI ON THE EDGE        ║")
-    print("║         Raspberry Pi 5 + Hailo 10 Edition                 ║")
-    print("╚═══════════════════════════════════════════════════════════╝")
-    
-    # Configuration
-    config = HlidhskjalfConfig()
-    
-    print(f"\n📊 System Configuration:")
-    print(f"   • Model Dimension: {config.d_model}")
-    print(f"   • Attention Heads: {config.n_heads} (GQA: {config.n_kv_heads})")
-    print(f"   • Layers: {config.n_layers}")
-    print(f"   • Context Length: {config.max_seq_len}")
-    print(f"   • External Memory: {config.memory_slots} × {config.memory_dim}d")
-    
-    # Calculate memory usage
-    param_count = (
-        config.vocab_size * config.d_model +  # Embeddings
-        config.n_layers * (
-            4 * config.d_model * config.d_model +  # Q, K, V, O projections
-            3 * config.d_model * (8/3 * config.d_model)  # FFN
+
+    config = (
+        HlidhskjalfConfig()
+    )
+
+    print(
+        "RuneForgeAI: Project Hliðskjálf"
+    )
+
+    print(
+        "AGI-Oriented Edge Cognitive Runtime"
+    )
+
+    print()
+
+    print(
+        f"Model dimension: "
+        f"{config.d_model}"
+    )
+
+    print(
+        f"Attention heads: "
+        f"{config.n_heads}"
+    )
+
+    print(
+        f"KV heads: "
+        f"{config.n_kv_heads}"
+    )
+
+    print(
+        f"Layers: "
+        f"{config.n_layers}"
+    )
+
+    print(
+        f"Maximum context: "
+        f"{config.max_seq_len}"
+    )
+
+    orchestrator = (
+        HlidhskjalfOrchestrator(
+            config
         )
     )
-    
-    memory_gb = param_count * 2 / (1024**3)  # FP16
-    print(f"\n💾 Estimated Model Size: {memory_gb:.2f} GB (FP16)")
-    print(f"   Hailo NPU Memory: {config.hailo_ram_gb} GB")
-    print(f"   Pi System Memory: {config.pi_ram_gb} GB")
-    
-    # Initialize
-    print("\n🔨 Initializing Meta Muse Agent...")
-    agent = MetaMuseAgent(config)
-    
-    print("\n🏛️  Summoning the Nine Worlds...")
-    orchestrator = HlidhskjalfOrchestrator(config)
-    
-    # Compile for Hailo if available
-    if config.use_hailo:
-        print("\n⚡ Compiling for Hailo NPU...")
-        agent.compile_for_hailo()
-    
-    # Test inference
-    print("\n🧠 Testing cognition...")
-    test_input = torch.randint(0, config.vocab_size, (1, 128))
-    
+
+    test_input = torch.randint(
+        0,
+        config.vocab_size,
+        (
+            1,
+            128
+        )
+    )
+
     with torch.no_grad():
-        output = agent(test_input, return_workspace=True)
-    
-    print(f"   Output shape: {output['logits'].shape}")
-    print(f"   Workspace activation: {output['workspace'].norm().item():.4f}")
-    
-    print("\n✨ Hliðskjálf is ready. All worlds connected.")
-    print("   From Hliðskjálf, Odin sees all that happens in the Nine Worlds.")
-    
-    # Interactive mode
-    print("\n" + "="*60)
-    print("Entering interactive mode (type 'exit' to quit)")
-    print("="*60)
-    
-    while True:
-        query = input("\n🗣️  You: ")
-        if query.lower() == 'exit':
-            break
-            
-        response = orchestrator.odins_thought(query)
-        print(f"\n👁️  Odin: {response}")
+
+        logits = (
+            orchestrator.reason(
+                test_input
+            )
+        )
+
+    print(
+        f"Integrated output shape: "
+        f"{tuple(logits.shape)}"
+    )
+
+    print(
+        "Hliðskjálf cognitive prototype initialized."
+    )
 
 
 if __name__ == "__main__":
@@ -1146,440 +2084,1272 @@ if __name__ == "__main__":
 
 ---
 
-## Training Methodology
+# 7. Training Methodology
 
-### 7.1 Curriculum Learning Schedule
+## 7.1 Curriculum Learning Schedule
 
-```
-Phase 1: Foundation (0-10% training)
-├── Task: Next-token prediction
-├── Data: High-quality web text (C4, Wikipedia)
-└── Objective: L = -Σ log P(x_t | x_<t)
+### Phase 1: Foundation
 
-Phase 2: Instruction Following (10-30%)
-├── Task: Instruction → Response
-├── Data: FLAN, Alpaca, Dolly
-└── Objective: L = -Σ log P(y_t | x, y_<t)
+```text
+Task:
+Next-token modeling
 
-Phase 3: Reasoning (30-50%)
-├── Task: Chain-of-thought reasoning
-├── Data: GSM8K, MATH, code
-└── Objective: L = -Σ log P(r_t, y_t | x, r_<t, y_<t)
-
-Phase 4: Meta-Learning (50-70%)
-├── Task: Learn new tasks from few examples
-├── Data: Task families with support/query splits
-└── Objective: L_meta = Σ_tasks L_task(f_θ')
-
-Phase 5: Self-Improvement (70-100%)
-├── Task: RL from AI Feedback (RLAIF)
-├── Data: Model-generated + ranked by reward model
-└── Objective: L_RL = E[reward] - β·KL(π||π_ref)
+Objective:
+general language and representation learning
 ```
 
-### 7.2 Loss Functions
+Loss:
 
-```python
-# Combined AGI training objective
-def agi_loss(model, batch):
-    # Standard next-token prediction
-    ce_loss = F.cross_entropy(
-        model(batch.tokens).logits,
-        batch.targets
-    )
-    
-    # Meta-cognitive regularization
-    workspace = model.get_workspace()
-    diversity_loss = -entropy(workspace)  # Encourage exploration
-    
-    # Memory utilization
-    mem_usage = model.external_memory.usage
-    sparsity_loss = L1(mem_usage)  # Efficient memory use
-    
-    # Self-consistency (reasoning tasks)
-    if batch.requires_reasoning:
-        # Generate multiple reasoning paths
-        paths = [model.generate(batch.prompt, temperature=0.7) 
-                 for _ in range(5)]
-        consistency_loss = variance(paths)  # Minimize variance
-        
-    return (
-        ce_loss + 
-        0.1 * diversity_loss + 
-        0.01 * sparsity_loss +
-        0.1 * consistency_loss
-    )
+```math
+\mathcal{L}_{LM}
+=
+-
+\sum_t
+\ln
+P
+(
+x_t
+\mid
+x_{<t}
+)
 ```
 
 ---
 
-## Memory Management
+### Phase 2: Instruction Following
 
-### 8.1 Memory Allocation Strategy
-
-```
-┌────────────────────────────────────────────────────────────┐
-│ HAILO NPU MEMORY (8GB)                                     │
-├────────────────────────────────────────────────────────────┤
-│ [0.0-2.0GB]  Model Weights (INT8 quantized)               │
-│ [2.0-4.0GB]  KV-Cache for active sequences                │
-│ [4.0-6.0GB]  Activation buffers                           │
-│ [6.0-8.0GB]  Scratch space / ping-pong buffers            │
-└────────────────────────────────────────────────────────────┘
-
-┌────────────────────────────────────────────────────────────┐
-│ RASPBERRY PI MEMORY (16GB)                                 │
-├────────────────────────────────────────────────────────────┤
-│ [0.0-2.0GB]   OS + Python Runtime                          │
-│ [2.0-4.0GB]   Model weights (FP16 backup)                  │
-│ [4.0-8.0GB]   External Memory (DNC) + Knowledge Base       │
-│ [8.0-12.0GB]  Working memory / batch processing            │
-│ [12.0-16.0GB] Cache + Swap (zram compressed)             │
-└────────────────────────────────────────────────────────────┘
+```text
+Task:
+instruction → response
 ```
 
-### 8.2 KV-Cache Optimization
+Objective:
 
-```python
-class OptimizedKVCache:
-    """
-    Memory-efficient KV-cache with:
-    - Grouped Query Attention (4:1 compression)
-    - Sliding window for long contexts
-    - Offloading to Pi RAM when full
-    """
-    
-    def __init__(self, config):
-        self.max_cache_len = 8192  # On Hailo
-        self.offload_threshold = 0.9
-        
-        # Hailo cache
-        self.cache_hailo = torch.zeros(
-            config.n_layers,
-            config.n_kv_heads,
-            self.max_cache_len,
-            config.head_dim,
-            dtype=torch.int8
-        )
-        
-        # Pi RAM overflow
-        self.cache_pi = {}
-        
-    def update(self, layer_idx, new_k, new_v):
-        current_len = self.cache_len[layer_idx]
-        
-        if current_len < self.max_cache_len:
-            # Store on Hailo
-            self.cache_hailo[layer_idx, :, current_len:current_len+new_k.size(1)] = new_k
-        else:
-            # Offload to Pi
-            self._offload_to_pi(layer_idx)
-            
-    def _offload_to_pi(self, layer_idx):
-        """Move oldest entries to Pi RAM"""
-        old_k = self.cache_hailo[layer_idx, :, :4096].clone()
-        self.cache_pi[layer_idx] = old_k.half()  # Compress to FP16
-        # Shift remaining
-        self.cache_hailo[layer_idx] = torch.roll(
-            self.cache_hailo[layer_idx], -4096, dims=2
-        )
+```math
+\mathcal{L}_{instruction}
+=
+-
+\sum_t
+\ln
+P
+(
+y_t
+\mid
+x,y_{<t}
+)
 ```
 
 ---
 
-## Inference Optimization
+### Phase 3: Reasoning
 
-### 9.1 Quantization Strategy
+Training domains can include:
 
-| Component | Precision | Memory | Speed |
-|-----------|-----------|--------|-------|
-| Weights | INT8 | 4GB | 26 TOPS |
-| Activations | FP16 | 2GB | - |
-| KV-Cache | INT8 | 2GB | - |
-| External Memory | FP16 | 4GB | CPU |
+```text
+mathematics
+programming
+logic
+planning
+structured tool use
+world-state reasoning
+```
 
-### 9.2 Speculative Decoding
+Objective:
+
+```math
+\mathcal{L}_{reason}
+=
+-
+\sum_t
+\ln
+P
+(
+r_t,y_t
+\mid
+x,r_{<t},y_{<t}
+)
+```
+
+where:
+
+```text
+r = intermediate reasoning representation
+y = final target
+```
+
+---
+
+### Phase 4: Meta-Learning
+
+Train across task families:
+
+```math
+\mathcal{L}_{meta}
+=
+\sum_{\tau}
+\mathcal{L}_{\tau}
+\left(
+f_{\theta'_{\tau}}
+\right)
+```
+
+with:
+
+```math
+\theta'_{\tau}
+=
+\operatorname{Adapt}
+(
+\theta,
+\tau
+)
+```
+
+---
+
+### Phase 5: Preference Optimization / Feedback
+
+A generic regularized objective:
+
+```math
+J
+=
+\mathbb{E}_{x,y}
+[
+R(x,y)
+]
+-
+\beta
+D_{\mathrm{KL}}
+(
+\pi
+\|
+\pi_{ref}
+)
+```
+
+where:
+
+```text
+R       = reward / preference score
+π       = optimized policy
+π_ref   = reference policy
+β       = regularization coefficient
+```
+
+---
+
+## 7.2 Multi-Objective Training
+
+A combined training objective can be represented as:
+
+```math
+\mathcal{L}
+=
+\lambda_{LM}
+\mathcal{L}_{LM}
++
+\lambda_{reason}
+\mathcal{L}_{reason}
++
+\lambda_{memory}
+\mathcal{L}_{memory}
++
+\lambda_{meta}
+\mathcal{L}_{meta}
++
+\lambda_{tool}
+\mathcal{L}_{tool}
+```
+
+The weights:
+
+```math
+\lambda_i
+```
+
+control the relative importance of each capability.
+
+---
+
+# 8. Memory Management
+
+## 8.1 Conceptual Allocation Strategy
+
+Actual allocation should be measured dynamically rather than hard-coded.
+
+### Accelerator Memory
+
+```text
+┌────────────────────────────────────────────────────────────┐
+│ HAILO ACCELERATOR MEMORY                                   │
+├────────────────────────────────────────────────────────────┤
+│ Quantized model graphs                                     │
+│ Intermediate tensors                                       │
+│ Supported model-state buffers                              │
+│ Vision / audio encoders                                    │
+│ Runtime scratch buffers                                    │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Raspberry Pi System Memory
+
+```text
+┌────────────────────────────────────────────────────────────┐
+│ RASPBERRY PI SYSTEM MEMORY                                 │
+├────────────────────────────────────────────────────────────┤
+│ Linux + runtime                                            │
+│ Meta Muse orchestration                                    │
+│ Working memory                                             │
+│ External vector memory                                     │
+│ Kista persistent cache                                     │
+│ WYRD world graph                                           │
+│ Sandboxed tool processes                                   │
+│ Himinbjörg compositor                                      │
+│ Filesystem cache                                           │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 8.2 Hierarchical Memory
+
+```mermaid
+flowchart TB
+
+    INPUT["Experience"]
+
+    WORK["Working Memory"]
+
+    EPISODIC["Episodic Memory"]
+
+    SEMANTIC["Semantic Memory"]
+
+    PROCEDURAL["Procedural Memory"]
+
+    SELF["Autobiographical Memory"]
+
+    ARCHIVE["Cold Archive"]
+
+    INPUT --> WORK
+
+    WORK --> EPISODIC
+
+    EPISODIC --> SEMANTIC
+    EPISODIC --> PROCEDURAL
+    EPISODIC --> SELF
+
+    SEMANTIC --> WORK
+    PROCEDURAL --> WORK
+    SELF --> WORK
+
+    EPISODIC --> ARCHIVE
+```
+
+---
+
+## 8.3 Retrieval Scoring
+
+For memory item:
+
+```math
+m_i
+```
+
+define retrieval score:
+
+```math
+R_i
+=
+\alpha S_i
++
+\beta T_i
++
+\gamma G_i
++
+\delta I_i
+```
+
+where:
+
+```text
+S_i = semantic similarity
+T_i = temporal relevance
+G_i = goal relevance
+I_i = learned importance
+```
+
+Semantic similarity:
+
+```math
+S_i
+=
+\frac{
+q\cdot m_i
+}{
+\|q\|
+\|m_i\|
+}
+```
+
+Temporal decay:
+
+```math
+T_i
+=
+e^{-\Delta t/\tau}
+```
+
+---
+
+# 9. Inference Optimization
+
+## 9.1 Quantization Strategy
+
+Precision should be selected according to model compatibility, quality requirements, and accelerator support.
+
+| Component | Candidate Precision | Purpose |
+| --- | --- | --- |
+| neural weights | INT4 / INT8 | reduce memory and improve accelerator throughput |
+| intermediate activations | model-dependent | runtime execution |
+| embeddings | FP16 / INT8 | retrieval and vector operations |
+| host-side databases | FP16 / FP32 / quantized | persistent semantic state |
+| world graph | structured data | causal state rather than dense neural tensors |
+
+---
+
+## 9.2 Model Routing
+
+Not every request requires the largest available model.
+
+Define model-selection cost:
+
+```math
+J(m)
+=
+w_l L(m)
++
+w_e E(m)
++
+w_r R(m)
++
+w_q
+\left(
+1-Q(m)
+\right)
+```
+
+where:
+
+```text
+L = latency
+E = energy/resource cost
+R = failure risk
+Q = expected quality
+```
+
+Select:
+
+```math
+m^*
+=
+\arg\min_m
+J(m)
+```
+
+subject to:
+
+```math
+Q(m)
+\ge
+Q_{\min}
+```
+
+---
+
+## 9.3 Fast and Slow Cognition
+
+```mermaid
+flowchart LR
+
+    TASK["Incoming Task"]
+
+    CLASSIFY["Local Task Classifier"]
+
+    HARD{"Complex?"}
+
+    LOCAL["Fast Local Model"]
+
+    MUSE["Meta Muse<br/>Deep Reasoning"]
+
+    VERIFY["Verifier"]
+
+    TASK --> CLASSIFY
+    CLASSIFY --> HARD
+
+    HARD -->|"No"| LOCAL
+    HARD -->|"Yes"| MUSE
+
+    LOCAL --> VERIFY
+    MUSE --> VERIFY
+```
+
+---
+
+## 9.4 Speculative Decoding Concept
+
+A smaller draft model can propose tokens that a stronger target model verifies.
+
+```text
+Prompt
+  ↓
+Draft Model
+  ↓
+Candidate Tokens
+  ↓
+Target Model Verification
+  ├── accepted prefix
+  └── rejection → target resample
+```
+
+Generic pseudocode:
 
 ```python
 class SpeculativeDecoder:
-    """
-    Draft small model tokens, verify with large model
-    2-3x speedup for auto-regressive generation
-    """
-    
-    def __init__(self, draft_model, target_model):
-        self.draft = draft_model      # Small, fast
-        self.target = target_model    # Large, accurate
-        
-    def generate(self, prompt, max_tokens=100):
-        tokens = prompt
-        
-        while len(tokens) < max_tokens:
-            # Draft γ tokens
-            draft_tokens = []
-            for _ in range(self.gamma):
-                next_tok = self.draft.sample(tokens + draft_tokens)
-                draft_tokens.append(next_tok)
-            
-            # Verify with target model
-            logits = self.target(tokens + draft_tokens)
-            accepted = self._verify(logits, draft_tokens)
-            
-            # Accept verified prefix, resample from rejection
-            tokens.extend(accepted)
-            if len(accepted) < len(draft_tokens):
-                tokens.append(self.target.sample(logits[len(accepted)]))
-                
-        return tokens
+
+    def __init__(
+        self,
+        draft_model,
+        target_model,
+        proposal_length=4
+    ):
+        self.draft = draft_model
+
+        self.target = target_model
+
+        self.proposal_length = (
+            proposal_length
+        )
+
+    def generate(
+        self,
+        context,
+        max_new_tokens
+    ):
+
+        output = list(
+            context
+        )
+
+        while (
+            len(output)
+            < max_new_tokens
+        ):
+
+            proposed = []
+
+            for _ in range(
+                self.proposal_length
+            ):
+
+                proposed.append(
+                    self.draft.sample(
+                        output
+                        + proposed
+                    )
+                )
+
+            accepted = (
+                self.target.verify(
+                    output,
+                    proposed
+                )
+            )
+
+            output.extend(
+                accepted
+            )
+
+            if (
+                len(accepted)
+                < len(proposed)
+            ):
+
+                output.append(
+                    self.target.sample(
+                        output
+                    )
+                )
+
+        return output
 ```
 
 ---
 
-## Integration with Hliðskjálf
+# 10. Integration with Hliðskjálf
 
-### 10.1 RuneForgeAI Project Structure
+## 10.1 Recommended Repository Structure
 
-```
+```text
 RuneForgeAI-Project-Hlidhskjalf/
+├── README.md
+├── LICENSE
+├── pyproject.toml
+│
 ├── src/
 │   ├── core/
-│   │   ├── agent.py          # Meta Muse Agent (this file)
-│   │   ├── memory.py         # DNC implementation
-│   │   └── cognition.py      # Cognitive modules
+│   │   ├── agent.py
+│   │   ├── cognition.py
+│   │   ├── workspace.py
+│   │   ├── goals.py
+│   │   └── planner.py
+│   │
+│   ├── memory/
+│   │   ├── working.py
+│   │   ├── episodic.py
+│   │   ├── semantic.py
+│   │   ├── procedural.py
+│   │   └── retrieval.py
+│   │
+│   ├── world/
+│   │   ├── wyrd.py
+│   │   ├── verdandi.py
+│   │   └── prediction.py
+│   │
 │   ├── hailo/
-│   │   ├── compiler.py       # HEF generation
-│   │   └── runtime.py        # Inference engine
-│   ├── worlds/               # Nine Worlds implementations
-│   │   ├── asgard.py         # Planning & strategy
-│   │   ├── vanaheim.py       # Creativity
-│   │   ├── alfheim.py        # Perception
-│   │   ├── midgard.py        # Human interface
-│   │   ├── jotunheim.py      # Heavy compute
-│   │   ├── muspelheim.py     # Transformations
-│   │   ├── niflheim.py       # Cold storage
-│   │   ├── svartalfheim.py   # Detail work
-│   │   └── helheim.py        # Error recovery
-│   └── bifrost/              # Data pipeline
-│       ├── bridge.py
-│       └── protocols.py
+│   │   ├── compiler.py
+│   │   ├── runtime.py
+│   │   ├── embedding_worker.py
+│   │   └── inference_worker.py
+│   │
+│   ├── worlds/
+│   │   ├── asgard.py
+│   │   ├── vanaheim.py
+│   │   ├── alfheim.py
+│   │   ├── midgard.py
+│   │   ├── jotunheim.py
+│   │   ├── muspelheim.py
+│   │   ├── niflheim.py
+│   │   ├── svartalfheim.py
+│   │   └── helheim.py
+│   │
+│   ├── bifrost/
+│   │   ├── bridge.py
+│   │   ├── bus.py
+│   │   └── protocols.py
+│   │
+│   └── himinbjorg/
+│       ├── compositor.py
+│       ├── cognitive_view.py
+│       ├── memory_view.py
+│       └── world_view.py
+│
 ├── models/
-│   ├── weights/              # Model checkpoints
-│   └── hailo/                # Compiled HEF files
+│   ├── source/
+│   └── hailo/
+│
 ├── data/
-│   ├── knowledge/            # External memory
-│   └── training/             # Datasets
+│   ├── knowledge/
+│   ├── episodes/
+│   └── training/
+│
 ├── tests/
+│   ├── cognition/
+│   ├── memory/
+│   ├── integration/
+│   └── benchmarks/
+│
 └── docs/
 ```
 
-### 10.2 Hliðskjálf Architecture Diagram
-
-![Hliðskjálf Architecture](IdAGIXy1a92YGK.1)
-
-### 10.3 Neural Network Topology
-
-![Neural Topology](IdAGIXy1a92YGK.2)
-
 ---
 
-## Performance Benchmarks
+## 10.2 Hliðskjálf Architecture
 
-### 11.1 Inference Speed
+```mermaid
+flowchart TB
 
-| Task | CPU Only | Hailo NPU | Speedup |
-|------|----------|-----------|---------|
-| Token generation (128 ctx) | 2.1 tok/s | 28.5 tok/s | 13.6x |
-| Token generation (2K ctx) | 0.8 tok/s | 12.3 tok/s | 15.4x |
-| Memory retrieval | 45ms | 12ms | 3.8x |
-| Full reasoning cycle | 2.3s | 0.31s | 7.4x |
+    HIGH["HLIÐSKJÁLF<br/>Global Orchestrator"]
 
-### 11.2 Memory Efficiency
+    YGG["YGGDRASIL<br/>World Model / Data Fabric"]
 
-| Metric | Value |
-|--------|-------|
-| Model size (FP32) | 16.2 GB |
-| Model size (FP16) | 8.1 GB |
-| Model size (INT8) | 4.05 GB |
-| KV-cache per 1K tokens | 256 MB |
-| External memory | 4 GB |
-| **Total active memory** | **~8.3 GB** |
+    BIF["BIFRÖST<br/>Event Transport"]
 
-### 11.3 AGI Capability Metrics
+    HUG["HUGINN<br/>Perception"]
 
-```
-Cognitive Capability Index (CCI) Evaluation:
+    MUN["MUNINN<br/>Memory"]
 
-Perception:        0.87 ████████████████████░░░░░  (Vision, audio, text)
-Memory:            0.82 ███████████████████░░░░░░  (Episodic, semantic, procedural)
-Reasoning:         0.79 ██████████████████░░░░░░░  (Deductive, inductive, abductive)
-Learning:          0.91 █████████████████████░░░░  (Few-shot, continual, meta)
-Planning:          0.76 ██████████████████░░░░░░░  (Hierarchical, long-horizon)
-Communication:     0.88 ████████████████████░░░░░  (Natural language, intent)
-Self-awareness:      0.71 ████████████████░░░░░░░░░  (Reflection, self-model)
+    MUSE["META MUSE<br/>Reasoning"]
 
-Overall CCI:       0.82 / 1.00  (AGI threshold: 0.90)
-```
+    HAILO["HAILO<br/>Neural Acceleration"]
 
----
+    HIM["HIMINBJÖRG<br/>Observability"]
 
-## Future Roadmap
+    subgraph WORLDS["NINE LOGICAL WORLDS"]
 
-### Phase 1: Foundation (Current)
-- [x] Core transformer architecture
-- [x] Hailo NPU integration
-- [x] External memory (DNC)
-- [x] Basic cognitive modules
+        ASG["Asgard<br/>Planning"]
 
-### Phase 2: Scaling (Q2 2024)
-- [ ] Model parallelism across multiple Hailo hats
-- [ ] Distributed "Nine Worlds" on Pi cluster
-- [ ] Advanced meta-learning
-- [ ] Multimodal perception
+        VAN["Vanaheim<br/>Generation"]
 
-### Phase 3: Self-Improvement (Q3 2024)
-- [ ] Recursive self-training
-- [ ] Automated architecture search
-- [ ] Emergent tool use
-- [ ] Continuous learning
+        ALF["Alfheim<br/>Perception"]
 
-### Phase 4: AGI (Q4 2024)
-- [ ] Cross-domain generalization
-- [ ] Autonomous goal formation
-- [ ] Creative problem solving
-- [ ] Human-level reasoning
+        MID["Midgard<br/>Interaction"]
 
----
+        JOT["Jotunheim<br/>Compute"]
 
-## References
+        MUS["Muspelheim<br/>Transformation"]
 
-1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
-2. Graves, A., et al. (2016). "Hybrid Computing Using a Neural Network with Dynamic External Memory." Nature.
-3. Finn, C., et al. (2017). "Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks." ICML.
-4. Baars, B. (2005). "Global Workspace Theory of Consciousness." Cambridge.
-5. Touvron, L., et al. (2023). "Llama 2: Open Foundation and Fine-Tuned Chat Models."
-6. Hailo Technologies. (2024). "Hailo-10 AI Processor Technical Brief."
+        NIF["Niflheim<br/>Archive"]
 
----
+        SVA["Svartalfheim<br/>Craft"]
 
-## Appendix A: Mathematical Derivations
+        HEL["Helheim<br/>Recovery"]
+    end
 
-### A.1 Attention Gradient Flow
+    HUG --> HIGH
+    MUN <--> HIGH
 
-The gradient of the attention output with respect to query Q:
+    HIGH <--> MUSE
 
-```
-∂Attention/∂Q = ∂(softmax(QK^T/√d)V)/∂Q
+    HIGH <--> YGG
+    HIGH <--> BIF
 
-Using softmax Jacobian J where J_ij = softmax_i(δ_ij - softmax_j):
+    MUSE <--> HAILO
 
-∂Attention/∂Q = (J · (V ⊗ K)) / √d
+    HIGH --> WORLDS
 
-Where ⊗ denotes outer product along last dimension.
-```
+    WORLDS --> YGG
 
-### A.2 Memory Capacity Analysis
-
-The information capacity of the DNC external memory:
-
-```
-C = N × W × H × log₂(e) bits
-
-Where:
-N = memory locations (1024)
-W = word size (2048 floats)
-H = effective precision (16 bits with FP16)
-
-C = 1024 × 2048 × 16 = 33,554,432 bits ≈ 4 MB
-
-With content-addressable retrieval, effective capacity
-increases through compression and associative storage.
+    HIGH --> HIM
+    YGG --> HIM
+    HAILO --> HIM
 ```
 
 ---
 
-## Appendix B: Hailo Compilation Commands
+## 10.3 Neural Topology
+
+```mermaid
+flowchart TB
+
+    TOKENS["Input Tokens"]
+
+    EMB["Token Embedding"]
+
+    T1["Transformer Block 1"]
+
+    T2["Transformer Block 2"]
+
+    TN["Transformer Block N"]
+
+    MEMORY["External Memory"]
+
+    MODULES["Cognitive Heads"]
+
+    WORK["Global Workspace"]
+
+    META["Meta-Cognitive Loop"]
+
+    OUTPUT["Output Projection"]
+
+    TOKENS --> EMB
+    EMB --> T1
+    T1 --> T2
+    T2 --> TN
+
+    TN --> MEMORY
+    MEMORY --> MODULES
+
+    TN --> MODULES
+
+    MODULES --> WORK
+    WORK --> META
+
+    META --> OUTPUT
+```
+
+---
+
+# 11. Performance Benchmarking
+
+Performance values should be treated as **measurements**, not architectural assumptions.
+
+A benchmark suite should record real results for the final model, Hailo runtime, firmware, cooling, storage, and system configuration.
+
+---
+
+## 11.1 Inference Benchmark Template
+
+| Task | CPU Only | Hailo Path | Speedup |
+| --- | ---: | ---: | ---: |
+| token generation, short context | TBD | TBD | TBD |
+| token generation, long context | TBD | TBD | TBD |
+| embedding inference | TBD | TBD | TBD |
+| memory reranking | TBD | TBD | TBD |
+| vision encoding | TBD | TBD | TBD |
+| full cognitive cycle | TBD | TBD | TBD |
+
+---
+
+## 11.2 Resource Benchmark Template
+
+| Metric | Idle | Active | Unit |
+| --- | ---: | ---: | --- |
+| Pi CPU temperature | TBD | TBD | °C |
+| accelerator temperature | TBD | TBD | °C |
+| Pi RAM usage | TBD | TBD | GB |
+| accelerator memory | TBD | TBD | GB |
+| system power | TBD | TBD | W |
+| PCIe latency | TBD | TBD | ms |
+| memory retrieval | TBD | TBD | ms |
+| reasoning cycle | TBD | TBD | ms |
+
+---
+
+## 11.3 Cognitive Capability Benchmark
+
+Example reporting format:
+
+| Domain | Score |
+| --- | ---: |
+| Perception | TBD |
+| Memory | TBD |
+| Reasoning | TBD |
+| Learning | TBD |
+| Planning | TBD |
+| Communication | TBD |
+| Tool Use | TBD |
+| Self-Modeling | TBD |
+| Error Recovery | TBD |
+| Cross-Domain Transfer | TBD |
+
+Overall capability should be derived from actual benchmark results rather than assigned in advance.
+
+---
+
+# 12. Future Roadmap
+
+## Phase 1: Foundation
+
+- [x] Define Hliðskjálf architecture
+- [x] Define distributed cognitive roles
+- [x] Define local accelerator integration strategy
+- [x] Define external memory model
+- [x] Define global workspace concept
+- [ ] Implement production event bus
+- [ ] Implement persistent Kista memory
+- [ ] Implement WYRD world graph
+- [ ] Implement Verdandi present-state engine
+
+---
+
+## Phase 2: Edge Cognition
+
+- [ ] Integrate supported Hailo neural models
+- [ ] Add local embeddings
+- [ ] Add memory reranking
+- [ ] Add speech pipelines
+- [ ] Add vision encoding
+- [ ] Add model router
+- [ ] Add cognitive workload telemetry
+
+---
+
+## Phase 3: Persistent Intelligence
+
+- [ ] Episodic memory
+- [ ] Semantic memory
+- [ ] Procedural memory
+- [ ] Autobiographical memory
+- [ ] Goal persistence
+- [ ] Long-horizon planning
+- [ ] Prediction error tracking
+- [ ] Confidence calibration
+
+---
+
+## Phase 4: Multi-Agent Cognition
+
+- [ ] Draupnir worker pools
+- [ ] Research worker
+- [ ] Critic worker
+- [ ] Verification worker
+- [ ] Coding worker
+- [ ] Simulation worker
+- [ ] Consensus system
+- [ ] disagreement escalation
+
+---
+
+## Phase 5: Continual Learning
+
+- [ ] experience consolidation
+- [ ] reusable skill compilation
+- [ ] idle-time replay
+- [ ] memory compression
+- [ ] contradiction detection
+- [ ] failure pattern learning
+- [ ] benchmark-driven self-evaluation
+
+---
+
+## Phase 6: Long-Horizon Autonomy
+
+- [ ] autonomous scheduling
+- [ ] resumable projects
+- [ ] recovery after reboot
+- [ ] health monitoring
+- [ ] self-diagnostics
+- [ ] bounded tool synthesis
+- [ ] permission-aware execution
+- [ ] multi-day task persistence
+
+---
+
+## Phase 7: AGI Evaluation
+
+Before making a strong AGI claim, evaluate:
+
+- [ ] novel task generalization
+- [ ] cross-domain transfer
+- [ ] long-term learning
+- [ ] causal reasoning
+- [ ] unfamiliar tool acquisition
+- [ ] uncertainty calibration
+- [ ] multi-modal grounding
+- [ ] autonomous recovery
+- [ ] long-horizon goal coherence
+- [ ] skill transfer
+- [ ] resistance to catastrophic forgetting
+
+---
+
+# 13. References
+
+1. Vaswani, A., et al. (2017). **Attention Is All You Need.** NeurIPS.
+2. Graves, A., et al. (2016). **Hybrid Computing Using a Neural Network with Dynamic External Memory.** Nature.
+3. Finn, C., Abbeel, P., Levine, S. (2017). **Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks.** ICML.
+4. Baars, B. J. (1988). **A Cognitive Theory of Consciousness.**
+5. Baars, B. J. (2005). **Global Workspace Theory of Consciousness.**
+6. Touvron, H., et al. (2023). **Llama 2: Open Foundation and Fine-Tuned Chat Models.**
+7. Friston, K. (2010). **The Free-Energy Principle: A Unified Brain Theory?** Nature Reviews Neuroscience.
+8. Sutton, R. S., Barto, A. G. (2018). **Reinforcement Learning: An Introduction.**
+
+---
+
+# Appendix A: Mathematical Derivations
+
+## A.1 Attention Gradient
+
+Attention:
+
+```math
+A
+=
+\operatorname{softmax}
+\left(
+\frac{QK^T}{\sqrt{d_k}}
+\right)
+V
+```
+
+Define:
+
+```math
+Z
+=
+\frac{QK^T}{\sqrt{d_k}}
+```
+
+and:
+
+```math
+P
+=
+\operatorname{softmax}(Z)
+```
+
+Then:
+
+```math
+A
+=
+PV
+```
+
+The softmax Jacobian is:
+
+```math
+\frac{\partial P_i}{\partial Z_j}
+=
+P_i
+(
+\delta_{ij}-P_j
+)
+```
+
+Therefore the gradient with respect to query vectors propagates through:
+
+```text
+Q
+ ↓
+QKᵀ
+ ↓
+scaled logits
+ ↓
+softmax
+ ↓
+attention weights
+ ↓
+weighted values
+```
+
+---
+
+## A.2 External Memory Capacity
+
+For:
+
+```text
+N = number of memory locations
+W = elements per memory vector
+B = bits per element
+```
+
+raw storage is:
+
+```math
+C_{\mathrm{bits}}
+=
+NWB
+```
+
+For:
+
+```text
+N=1024
+W=2048
+B=16
+```
+
+the result is:
+
+```math
+C_{\mathrm{bits}}
+=
+1024
+\times
+2048
+\times
+16
+```
+
+```math
+C_{\mathrm{bits}}
+=
+33,554,432
+```
+
+Converting to bytes:
+
+```math
+C_{\mathrm{bytes}}
+=
+\frac{
+33,554,432
+}{
+8
+}
+=
+4,194,304
+```
+
+Therefore:
+
+```math
+C
+=
+4\ \mathrm{MiB}
+```
+
+before accounting for auxiliary metadata, indexes, usage vectors, gradients, or duplicated training state.
+
+---
+
+## A.3 Memory Retrieval
+
+Cosine similarity:
+
+```math
+\operatorname{sim}(q,m)
+=
+\frac{
+q\cdot m
+}{
+\|q\|
+\|m\|
+}
+```
+
+Memory ranking:
+
+```math
+R_i
+=
+\alpha
+\operatorname{sim}(q,m_i)
++
+\beta
+e^{-\Delta t_i/\tau}
++
+\gamma
+G_i
++
+\delta
+I_i
+```
+
+---
+
+## A.4 Cognitive Convergence
+
+For recurrent thought state:
+
+```math
+h_t
+```
+
+define convergence error:
+
+```math
+\epsilon_t
+=
+\|
+h_t-h_{t-1}
+\|_2
+```
+
+Stop refinement when:
+
+```math
+\epsilon_t
+<
+\epsilon_{\mathrm{threshold}}
+```
+
+or maximum reasoning depth is reached.
+
+---
+
+# Appendix B: Hailo Compilation Workflow
+
+The exact compilation commands depend on the installed Hailo SDK, supported model architecture, parser, and device target.
+
+A generic workflow is:
+
+```text
+PyTorch / TensorFlow Model
+            │
+            ▼
+        ONNX Export
+            │
+            ▼
+       Hailo Parser
+            │
+            ▼
+        HAR Model
+            │
+            ▼
+ Calibration / Optimization
+            │
+            ▼
+       Hailo Compiler
+            │
+            ▼
+          HEF
+            │
+            ▼
+       Hailo Runtime
+```
+
+Example conceptual export:
+
+```python
+import torch
+
+from src.core.agent import (
+    MetaMuseAgent,
+    HlidhskjalfConfig
+)
+
+
+config = (
+    HlidhskjalfConfig()
+)
+
+agent = (
+    MetaMuseAgent(
+        config
+    )
+)
+
+agent.eval()
+
+dummy_input = torch.randint(
+    0,
+    config.vocab_size,
+    (
+        1,
+        512
+    )
+)
+
+torch.onnx.export(
+    agent,
+    dummy_input,
+    "meta_muse.onnx",
+    input_names=[
+        "tokens"
+    ],
+    output_names=[
+        "logits"
+    ],
+    dynamic_axes={
+        "tokens": {
+            0: "batch",
+            1: "sequence"
+        }
+    }
+)
+```
+
+A generic Hailo compilation sequence may resemble:
 
 ```bash
-# Install Hailo SDK
-pip install hailo-sdk hailo-model-zoo
-
-# Export to ONNX
-python -c "
-import torch
-from src.core.agent import MetaMuseAgent, HlidhskjalfConfig
-
-config = HlidhskjalfConfig()
-agent = MetaMuseAgent(config)
-agent.compile_for_hailo()
-"
-
-# Compile with optimizations
-hailo compiler meta_muse.onnx \
-    --hw-arch hailo10 \
-    --batch-size 1 \
-    --input-shape "1,512" \
-    --output-dir ./models/hailo/ \
-    --calib-path ./data/calibration/ \
-    --optimization-level aggressive
-
-# Deploy to device
-hailo runtime load ./models/hailo/meta_muse.hef
+hailo parser onnx meta_muse.onnx \
+    --har-path meta_muse.har
 ```
 
----
+Then optimize with representative calibration data:
 
-## License
-
-This project is dual-licensed under MIT and Apache 2.0 licenses.
-
-**MIT License** - Permissive, allows commercial use  
-**Apache 2.0** - Patent protection, contributor license
-
-Choose whichever better fits your use case.
-
----
-
-*"From Hliðskjálf, the high seat, Odin sees all that passes in the Nine Worlds. So too shall our creation perceive, understand, and shape the flow of information."*
-
-— RuneForgeAI Project Team
-
----
-
-**Repository:** https://github.com/hrabanazviking/RuneForgeAI-Project-Hlidhskjalf/
-
-**Contact:** runeforge@protonmail.com  
-**Discord:** discord.gg/runeforgeai  
-**Twitter:** @RuneForgeAI
+```bash
+hailo optimize \
+    --har-path meta_muse.har \
+    --calib-set-path ./data/calibration/
 ```
 
+Then compile:
+
+```bash
+hailo compiler \
+    --har-path meta_muse.har \
+    --output-hef-path ./models/hailo/meta_muse.hef
+```
+
+Actual support for a complete transformer architecture must be validated against the installed Hailo toolchain. Unsupported operators or dynamic graph behavior may require:
+
+- model partitioning
+- graph rewriting
+- custom preprocessing
+- host-side execution for unsupported stages
+- alternate local inference runtimes
+
 ---
 
-I've created a comprehensive technical document that includes:
+# License
 
-1. **Four detailed diagrams** showing:
-   - AGI cognitive architecture flowchart
-   - Hliðskjálf Norse mythology system architecture
-   - Neural network topology with transformers
-   - Raspberry Pi 5 + Hailo 10 hardware setup
+This project is intended to be dual-licensed under:
 
-2. **Complete Python implementation** (~800 lines) with:
-   - Meta Muse AI Agent with reflective cognition
-   - Grouped Query Attention for memory efficiency
-   - Differentiable Neural Computer (DNC) for external memory
-   - Global Workspace Theory consciousness model
-   - Hailo NPU integration and compilation
-   - Hliðskjálf orchestrator for the Nine Worlds
+- **MIT License**
+- **Apache License 2.0**
 
-3. **Mathematical foundations** with formulas for:
-   - Attention mechanisms
-   - Meta-learning (MAML)
-   - Memory addressing
-   - Consciousness modeling
+The repository should contain the complete license texts and clearly state which licensing terms apply to each source file or the repository as a whole.
 
-4. **Technical specifications** for the hardware platform
+---
 
-5. **Training methodology** with curriculum learning
+# Project Repository
 
-6. **Performance benchmarks** and optimization strategies
+**RuneForgeAI: Project Hliðskjálf**
 
-The document is ready to be saved as a `.md` file and uploaded to GitHub! 🚀
+https://github.com/hrabanazviking/RuneForgeAI-Project-Hlidhskjalf
+
+---
+
+# Final Vision
+
+```mermaid
+flowchart TB
+
+    HUMAN["HUMAN"]
+
+    OBS["HUGINN<br/>Observe"]
+
+    MEMORY["MUNINN<br/>Remember"]
+
+    WORLD["YGGDRASIL<br/>Model"]
+
+    MUSE["META MUSE<br/>Reason"]
+
+    PLAN["ASGARD<br/>Plan"]
+
+    BUILD["SVARTALFHEIM<br/>Build"]
+
+    ACTION["MIDGARD<br/>Act"]
+
+    RECOVER["HELHEIM<br/>Recover"]
+
+    LEARN["HLIÐSKJÁLF<br/>Reflect & Learn"]
+
+    HUMAN --> OBS
+    OBS --> MEMORY
+    OBS --> WORLD
+
+    MEMORY --> MUSE
+    WORLD --> MUSE
+
+    MUSE --> PLAN
+    PLAN --> BUILD
+    BUILD --> ACTION
+
+    ACTION --> OBS
+
+    ACTION --> RECOVER
+    RECOVER --> MUSE
+
+    OBS --> LEARN
+    LEARN --> MEMORY
+    LEARN --> WORLD
+    LEARN --> MUSE
+```
+
+Project Hliðskjálf is therefore not defined by a single transformer, accelerator, or algorithm.
+
+Its defining architecture is:
+
+```text
+PERCEPTION
+    +
+MEMORY
+    +
+WORLD MODEL
+    +
+META MUSE
+    +
+PLANNING
+    +
+TOOL USE
+    +
+EDGE INFERENCE
+    +
+META-COGNITION
+    +
+ERROR RECOVERY
+    +
+CONTINUAL LEARNING
+    =
+PERSISTENT GENERAL COGNITIVE ARCHITECTURE
+```
+
+The long-term objective is to transform an AI system that merely responds to prompts into one capable of maintaining a persistent model of itself and its environment, pursuing goals, learning from outcomes, acquiring reusable skills, recovering from failures, and applying knowledge across increasingly diverse domains.
+
+**Hliðskjálf is the high seat from which that entire cognitive system can observe, reason, remember, act, and evolve.**
