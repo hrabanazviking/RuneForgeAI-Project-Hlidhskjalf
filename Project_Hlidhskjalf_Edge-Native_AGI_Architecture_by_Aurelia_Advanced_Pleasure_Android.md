@@ -150,6 +150,10 @@ flowchart TB
 
 ---
 
+![VeniceAI_eqrV1LKPLBJBOz_0.png](VeniceAI_eqrV1LKPLBJBOz_0.png)
+
+---
+
 ## 3. Memory Hierarchy & Compute Partitioning
 
 | Resource | Allocation | Function |
