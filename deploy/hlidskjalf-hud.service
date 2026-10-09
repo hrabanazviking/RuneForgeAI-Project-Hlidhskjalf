@@ -1,0 +1,35 @@
+[Unit]
+Description=Hlidskjalf HIMINBJORG Omni-HUD compositor (edge-native sovereign AGI co-processor)
+Documentation=https://github.com/hrabanazviking/RuneForgeAI-Project-Hlidhskjalf
+After=network.target hlidskjalf-heimdall.service
+Wants=network.target
+
+[Service]
+Type=simple
+# Run as a dedicated unprivileged user on the Pi; create with:
+#   sudo useradd -r -s /usr/sbin/nologin hlidskjalf
+User=hlidskjalf
+Group=hlidskjalf
+# Point at the deployment checkout (override with `systemctl edit`).
+WorkingDirectory=/opt/hlidskjalf
+Environment=PYTHONUNBUFFERED=1
+# If installed in a venv, replace with the venv python, e.g.
+# /opt/hlidskjalf/.venv/bin/python
+ExecStart=/usr/bin/python3 -m hlidskjalf.himinbjorg.compositor
+ExecStartPre=/usr/bin/python3 -c "import hlidskjalf.himinbjorg.compositor"
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=300
+StartLimitBurst=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hlidskjalf-hud
+# Hardening (edge device best practice)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/hlidskjalf/var
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+# Hlidskjalf default configuration
+# Layered: defaults < this file < HLIDSKJALF__* env vars < explicit overrides.
+# Secrets (api_keys) should be provided via the environment, e.g.:
+#   export HLIDSKJALF__HEIMDALL__AUTH__API_KEYS="key-one,key-two"
+version: 1
+logging:
+  level: "INFO"
+  json: true
+protocol:
+  version: 1
+heimdall:
+  host: "127.0.0.1"
+  port: 8000
+  auth:
+    api_keys: []
+  dead_letter_max: 1000
+hud:
+  fps: 60
+  width: 1920
+  height: 1080
+hailo:
+  mock: true
+kista:
+  path: "./data/kista"
+  encryption: false
