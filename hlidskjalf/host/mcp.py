@@ -6,6 +6,8 @@ written to the server's stdin and read from its stdout.
 
 Public API:
     MCPClient            — JSON-RPC client; ``list_tools()`` / ``call_tool()``.
+                           Both accept an optional ``timeout`` (seconds) for
+                           the server response; :exc:`TimeoutError` on expiry.
     MockMCPServer        — in-process mock MCP server for tests; registers
                            fake tools and speaks the same wire format.
     MCPError             — raised when the remote side reports an error.
@@ -23,6 +25,7 @@ from __future__ import annotations
 
 import json
 import os
+import queue
 import subprocess
 import threading
 from typing import Any, BinaryIO, Callable, Optional
@@ -51,7 +54,51 @@ class JSONRPCClient:
         self._lock = threading.Lock()
         self._next_id = 0
 
-    def _send_request(self, method: str, params: Any = None) -> Any:
+    def _readline(self, timeout: Optional[float]) -> bytes:
+        """Read one response line, optionally bounded by ``timeout``.
+
+        Raises:
+            TimeoutError: If no line arrives within ``timeout`` seconds.
+            ValueError: If ``timeout`` is not positive.
+
+        Note: after a timeout the stream is in an unknown state (a late
+        response may still arrive on the orphaned reader thread), so the
+        client should be closed rather than reused.
+        """
+        if timeout is None:
+            return self._reader.readline()
+        if timeout <= 0:
+            raise ValueError(f"timeout must be positive, got {timeout}")
+        box: "queue.Queue[tuple[str, Any]]" = queue.Queue(maxsize=1)
+
+        def _read() -> None:
+            try:
+                box.put(("ok", self._reader.readline()))
+            except Exception as exc:  # noqa: BLE001 — delivered to waiter
+                box.put(("err", exc))
+
+        thread = threading.Thread(
+            target=_read, daemon=True, name="mcp-read-timeout"
+        )
+        thread.start()
+        try:
+            kind, value = box.get(timeout=timeout)
+        except queue.Empty:
+            raise TimeoutError(
+                f"MCP read timed out after {timeout} seconds"
+            ) from None
+        if kind == "err":
+            raise value
+        return value
+
+    def _send_request(
+        self,
+        method: str,
+        params: Any = None,
+        timeout: Optional[float] = None,
+    ) -> Any:
+        if timeout is not None and timeout <= 0:
+            raise ValueError(f"timeout must be positive, got {timeout}")
         with self._lock:
             self._next_id += 1
             request_id = self._next_id
@@ -61,7 +108,7 @@ class JSONRPCClient:
             payload = (json.dumps(message) + "\n").encode("utf-8")
             self._writer.write(payload)
             self._writer.flush()
-            line = self._reader.readline()
+            line = self._readline(timeout)
         if not line:
             raise MCPError(-32000, "server closed the connection")
         try:
@@ -113,17 +160,36 @@ class MCPClient(JSONRPCClient):
         client._proc = proc  # type: ignore[attr-defined]
         return client
 
-    def list_tools(self) -> list[dict[str, Any]]:
-        """Return the server's tool descriptors."""
-        result = self._send_request("tools/list", {}) or {}
+    def list_tools(self, timeout: Optional[float] = None) -> list[dict[str, Any]]:
+        """Return the server's tool descriptors.
+
+        Args:
+            timeout: Max seconds to wait for the response; ``None`` waits
+                forever (previous behaviour).  Raises :exc:`TimeoutError`
+                on expiry.
+        """
+        result = self._send_request("tools/list", {}, timeout=timeout) or {}
         return list(result.get("tools", []))
 
     def call_tool(
-        self, name: str, arguments: Optional[dict[str, Any]] = None
+        self,
+        name: str,
+        arguments: Optional[dict[str, Any]] = None,
+        timeout: Optional[float] = None,
     ) -> dict[str, Any]:
-        """Call a tool; returns the MCP result object (content/isError)."""
+        """Call a tool; returns the MCP result object (content/isError).
+
+        Args:
+            name: Tool name.
+            arguments: Tool arguments.
+            timeout: Max seconds to wait for the response; ``None`` waits
+                forever (previous behaviour).  Raises :exc:`TimeoutError`
+                on expiry.
+        """
         result = self._send_request(
-            "tools/call", {"name": name, "arguments": arguments or {}}
+            "tools/call",
+            {"name": name, "arguments": arguments or {}},
+            timeout=timeout,
         )
         if not isinstance(result, dict):
             raise MCPError(-32603, "unexpected tools/call result shape")

@@ -50,6 +50,20 @@ BLOCKED_IMPORTS = frozenset(
     }
 )
 
+# Bare-name builtins that must never be *called* — the attribute forms
+# (``builtins.eval`` / ``builtins.exec``) are covered by BLOCKED_ATTRS, but
+# ``ast`` represents ``eval("1+1")`` as a bare ``Name`` node, so the dotted
+# path never matches.  Checked in ``visit_Call``.
+_BARE_BLOCKED_BUILTINS = frozenset(
+    {
+        "eval",
+        "exec",
+        "compile",
+        "open",
+        "__import__",
+    }
+)
+
 # Attribute-style escapes, checked as dotted names (os.system, etc.).
 BLOCKED_ATTRS = frozenset(
     {
@@ -138,7 +152,13 @@ class _SafetyScanner(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:  # noqa: N802
-        dotted = _dotted_name(node.func)
+        func = node.func
+        # Bare builtins (eval(...), exec(...), ...) parse as ast.Name, so
+        # the dotted path below never matches them — check the bare id.
+        if isinstance(func, ast.Name) and func.id in _BARE_BLOCKED_BUILTINS:
+            self.reason = f"blocked call: {func.id}"
+            return
+        dotted = _dotted_name(func)
         if dotted in BLOCKED_ATTRS:
             self.reason = f"blocked call: {dotted}"
             return

@@ -8,9 +8,30 @@ draws the distribution as a bar chart plus the headline ``P(>=X)``.
 from __future__ import annotations
 
 from fractions import Fraction
+from functools import lru_cache
 from typing import Dict, Mapping
 
 from hlidskjalf.himinbjorg.compositor import Canvas, Viewport
+
+
+@lru_cache(maxsize=128)
+def _distribution_cached(num: int, sides: int) -> Dict[int, Fraction]:
+    """Memoized core of :func:`distribution`.
+
+    ``render`` needs the same distribution twice per frame (bar chart +
+    :func:`prob_at_least`); caching keeps the second lookup O(1) instead
+    of re-running the convolution.
+    """
+    dist: Dict[int, Fraction] = {face: Fraction(1, sides)
+                                 for face in range(1, sides + 1)}
+    step = Fraction(1, sides)
+    for _ in range(num - 1):
+        nxt: Dict[int, Fraction] = {}
+        for total, prob in dist.items():
+            for face in range(1, sides + 1):
+                nxt[total + face] = nxt.get(total + face, Fraction(0)) + prob * step
+        dist = nxt
+    return dict(sorted(dist.items()))
 
 
 def distribution(num: int, sides: int) -> Dict[int, Fraction]:
@@ -24,16 +45,8 @@ def distribution(num: int, sides: int) -> Dict[int, Fraction]:
         raise ValueError("num must be >= 1")
     if sides < 2:
         raise ValueError("sides must be >= 2")
-    dist: Dict[int, Fraction] = {face: Fraction(1, sides)
-                                   for face in range(1, sides + 1)}
-    step = Fraction(1, sides)
-    for _ in range(num - 1):
-        nxt: Dict[int, Fraction] = {}
-        for total, prob in dist.items():
-            for face in range(1, sides + 1):
-                nxt[total + face] = nxt.get(total + face, Fraction(0)) + prob * step
-        dist = nxt
-    return dict(sorted(dist.items()))
+    # Copy: callers get a fresh dict so nobody can mutate the cache.
+    return dict(_distribution_cached(num, sides))
 
 
 def prob_at_least(num: int, sides: int, target: int) -> Fraction:

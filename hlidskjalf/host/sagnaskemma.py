@@ -8,7 +8,8 @@ Public API:
     PartyMember         — one adventurer's vitals.
     member_from_dict / party_from_dict — build state from plain data.
 
-Viewport format (matches ``himinbjorg`` vitals ``update()``)::
+Viewport format (matches ``himinbjorg`` vitals ``update()``, which also
+accepts the same member list under the ``"party"`` key or as a bare list)::
 
     {"members": [
         {"name": ..., "hp": ..., "max_hp": ..., "hp_pct": ...,

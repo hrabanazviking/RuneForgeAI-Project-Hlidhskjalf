@@ -3,6 +3,11 @@
 Slice 31 — ``update`` accepts ``{"spread": [{"name", "position",
 "reversed"}]}`` (or a bare list); ``render`` lays the spread out as card
 tiles with position labels and a reversed marker.
+
+Reader-tolerant: the host divination adapter's tarot shape
+``{"spread": [{"position", "card", "upright"}]}`` is normalised
+(``card`` → ``name``, ``upright`` → ``not reversed``), and the rune shape
+``{"cast": [{"rune", "upright"}]}`` is accepted as well.
 """
 from __future__ import annotations
 
@@ -19,6 +24,19 @@ class SpreadCard:
     reversed: bool = False
 
 
+def _is_reversed(entry: Mapping[str, Any]) -> bool:
+    """Normalise the reversal flag across adapter shapes.
+
+    Explicit ``"reversed"`` wins; otherwise the host adapter's
+    ``"upright"`` boolean is inverted.  Defaults to not reversed.
+    """
+    if "reversed" in entry:
+        return bool(entry["reversed"])
+    if "upright" in entry:
+        return not bool(entry["upright"])
+    return False
+
+
 class DivinationViewport(Viewport):
     """Renders a card/rune spread as labelled tiles."""
 
@@ -31,15 +49,19 @@ class DivinationViewport(Viewport):
 
     # -- state ----------------------------------------------------------------
     def update(self, state: Mapping[str, Any]) -> None:
-        raw: Any = state.get("spread", state) if isinstance(state, Mapping) else state
+        if isinstance(state, Mapping):
+            raw: Any = state.get("spread", state.get("cast", state))
+        else:
+            raw = state
         cards: List[SpreadCard] = []
         if isinstance(raw, (list, tuple)):
             for entry in raw:
                 if isinstance(entry, Mapping):
                     cards.append(SpreadCard(
-                        name=str(entry.get("name", "?")),
+                        name=str(entry.get(
+                            "name", entry.get("card", entry.get("rune", "?")))),
                         position=str(entry.get("position", "")),
-                        reversed=bool(entry.get("reversed", False)),
+                        reversed=_is_reversed(entry),
                     ))
         self.spread = cards
 

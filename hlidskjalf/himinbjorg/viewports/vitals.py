@@ -1,7 +1,8 @@
 """Party vitals viewport.
 
 Slice 29 — TTRPG party HP/status display.  ``update`` accepts
-``{"party": [{"name", "hp", "max_hp", "status"}]}`` (or a bare list);
+``{"party": [{"name", "hp", "max_hp", "status"}]}``,
+``{"members": [...]}`` (the Sagnaskemma adapter shape), or a bare list;
 ``render`` draws a labelled HP bar and status text per member, coloured by
 remaining health.
 """
@@ -40,7 +41,12 @@ class VitalsViewport(Viewport):
 
     # -- state ----------------------------------------------------------------
     def update(self, state: Mapping[str, Any]) -> None:
-        raw: Any = state.get("party", state) if isinstance(state, Mapping) else state
+        # Reader-tolerant: accept the "party" key, the Sagnaskemma
+        # adapter's "members" key, or a bare member list.
+        if isinstance(state, Mapping):
+            raw: Any = state.get("party", state.get("members", state))
+        else:
+            raw = state
         members: List[PartyMember] = []
         if isinstance(raw, (list, tuple)):
             for entry in raw:

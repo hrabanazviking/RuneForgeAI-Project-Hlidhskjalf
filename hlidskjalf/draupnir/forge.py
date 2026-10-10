@@ -9,12 +9,16 @@ heartbeats so the forge always knows who is alive.
 
 from __future__ import annotations
 
+import logging
 import multiprocessing as mp
+import queue
 import threading
 import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+log = logging.getLogger(__name__)
 
 TaskFn = Callable[..., Any]
 
@@ -43,6 +47,7 @@ def _agent_worker(
     result_queue: "mp.Queue",
     heartbeats: Dict[str, float],
     heartbeat_interval: float,
+    dropped: "mp.Value",
 ) -> None:
     """Entry point of every forged process (runs in the child)."""
 
@@ -57,15 +62,28 @@ def _agent_worker(
 
     try:
         payload = fn(*args, **kwargs)
-        result_queue.put({"agent_id": agent_id, "ok": True, "output": payload})
+        result = {"agent_id": agent_id, "ok": True, "output": payload}
     except Exception as exc:  # noqa: BLE001 — report crash back to parent
-        result_queue.put(
-            {
-                "agent_id": agent_id,
-                "ok": False,
-                "output": None,
-                "error": f"{type(exc).__name__}: {exc}",
-            }
+        result = {
+            "agent_id": agent_id,
+            "ok": False,
+            "output": None,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+    # Non-blocking put: a standalone Forge (no Supervisor draining the
+    # queue) must never let a *finished* worker wedge forever on a full
+    # queue — that reads as a healthy-but-stuck "running" agent and burns
+    # a concurrency slot.  Drop the result (counted + logged) instead.
+    try:
+        result_queue.put_nowait(result)
+    except queue.Full:
+        with dropped.get_lock():
+            dropped.value += 1
+        log.warning(
+            "forge: result queue full; dropping %s result for agent %s (%s)",
+            "ok" if result.get("ok") else "error",
+            agent_id,
+            task_name,
         )
     finally:
         heartbeats.pop(agent_id, None)
@@ -103,6 +121,9 @@ class Forge:
         self._result_queue: "mp.Queue" = self._ctx.Queue(result_queue_size)
         self._agents: Dict[str, AgentRecord] = {}
         self._lock = threading.Lock()
+        #: Results dropped by workers when the result queue was full
+        #: (shared with child processes; see :func:`_agent_worker`).
+        self._dropped = self._ctx.Value("i", 0)
 
     # -- spawning ---------------------------------------------------------
     def spawn(self, task_spec: TaskSpec) -> str:
@@ -132,6 +153,7 @@ class Forge:
                     self._result_queue,
                     self._heartbeats,
                     self.heartbeat_interval,
+                    self._dropped,
                 ),
                 name=agent_id,
                 daemon=True,
@@ -167,6 +189,26 @@ class Forge:
     @property
     def result_queue(self) -> "mp.Queue":
         return self._result_queue
+
+    @property
+    def dropped_results(self) -> int:
+        """Results workers dropped because the result queue was full."""
+        return self._dropped.value
+
+    def drain_results(self) -> List[Dict[str, Any]]:
+        """Drain every available result from the result queue, non-blocking.
+
+        Returns the drained result dicts in queue order.  A standalone
+        Forge (no Supervisor) should call this periodically so finished
+        workers' results never pile up.
+        """
+        drained: List[Dict[str, Any]] = []
+        while True:
+            try:
+                drained.append(self._result_queue.get_nowait())
+            except queue.Empty:
+                break
+        return drained
 
     # -- control ----------------------------------------------------------
     def kill_agent(self, agent_id: str) -> bool:

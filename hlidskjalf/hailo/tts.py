@@ -105,10 +105,18 @@ def _synthesize_samples(text: str, config: VoiceConfig) -> bytes:
     per_char = max(1, total // len(chars))
     amplitude = 0.35 * 32767
 
+    # The oscillator frequency depends only on the character (plus the
+    # voice config), not the sample index — cache it per distinct char so
+    # we hash once per character instead of once per audio sample.
+    freq_cache: Dict[str, float] = {}
+
     samples = bytearray()
     for i in range(total):
         char = chars[min(i // per_char, len(chars) - 1)]
-        freq = _char_frequency(char, config.base_freq, config.pitch)
+        freq = freq_cache.get(char)
+        if freq is None:
+            freq = _char_frequency(char, config.base_freq, config.pitch)
+            freq_cache[char] = freq
         t = i / SAMPLE_RATE
         # Fundamental plus a soft second harmonic; short fade in/out.
         wave = math.sin(2.0 * math.pi * freq * t)

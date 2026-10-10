@@ -18,9 +18,10 @@ Only the standard library is used.
 
 from __future__ import annotations
 
+import heapq
 import itertools
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 #: Job lifecycle states.
 QUEUED = "queued"
@@ -79,6 +80,17 @@ class NeuralScheduler:
         self._queue: List[Job] = []
         self._seq = itertools.count()
         self._ids = itertools.count(1)
+        # Scheduling rounds elapsed.  Every round ages every skipped job by
+        # exactly ``aging_step`` — a *uniform* shift — so the relative order
+        # of queued jobs never changes between rounds.  The heap key
+        # ``aging_step * born_round - priority`` is therefore time-invariant:
+        # ordering by it is identical to ordering by
+        # ``-(priority + aging_step * (round - born_round))`` at any round,
+        # and the heap stays valid with no per-round updates.
+        self._heap: List[Tuple[int, int, str]] = []  # (rank, seq, job_id)
+        self._round = 0
+        self._born: Dict[str, int] = {}  # job_id -> submission round
+        self._live: set[str] = set()  # job ids still queued (lazy deletion)
 
     def submit(
         self,
@@ -108,14 +120,23 @@ class NeuralScheduler:
         )
         self._jobs[job_id] = job
         self._queue.append(job)
+        self._born[job_id] = self._round
+        self._live.add(job_id)
+        rank = self._aging_step * self._round - priority
+        heapq.heappush(self._heap, (rank, seq, job_id))
         return job_id
+
+    def _effective(self, job: Job) -> int:
+        """Job's effective priority at the current round (lazy aging)."""
+        born = self._born.get(job.id, self._round)
+        return job.priority + self._aging_step * (self._round - born)
 
     def pending(self) -> List[Job]:
         """Queued jobs in the order they would run (best first)."""
-        return sorted(
-            (j for j in self._queue if j.status == QUEUED),
-            key=lambda j: (-j.effective_priority, j.seq),
-        )
+        live = [j for j in self._queue if j.id in self._live]
+        for job in live:
+            job.effective_priority = self._effective(job)
+        return sorted(live, key=lambda j: (-j.effective_priority, j.seq))
 
     def get(self, job_id: str) -> Job:
         """Return the job with ``job_id`` (any status)."""
@@ -125,18 +146,29 @@ class NeuralScheduler:
             raise KeyError(f"unknown job id {job_id!r}") from None
 
     def __len__(self) -> int:
-        return len(self._queue)
+        return len(self._live)
 
     def _pop_next(self) -> Optional[Job]:
-        """Remove and return the best queued job, aging the skipped ones."""
-        candidates = self.pending()
-        if not candidates:
-            return None
-        chosen = candidates[0]
-        for job in candidates[1:]:
-            job.effective_priority += self._aging_step
-        self._queue.remove(chosen)
-        return chosen
+        """Remove and return the best queued job, aging the skipped ones.
+
+        Aging is applied lazily: every skipped job gains ``aging_step``
+        effective priority per round, but since the gain is uniform the
+        heap order (built on the time-invariant rank) already reflects it.
+        Stale heap entries (cleared jobs) are skipped via ``_live``.
+        """
+        while self._heap:
+            _rank, _seq, job_id = heapq.heappop(self._heap)
+            if job_id not in self._live:
+                continue  # stale entry: already popped or cleared
+            job = self._jobs[job_id]
+            self._live.discard(job_id)
+            self._round += 1
+            job.effective_priority = self._effective(job)
+            # Amortised cleanup of the lazily-deleted _queue list.
+            if len(self._queue) > 4 * len(self._live) + 64:
+                self._queue = [j for j in self._queue if j.id in self._live]
+            return job
+        return None
 
     def run_next(self) -> Optional[Job]:
         """Run the highest-priority queued job and return it.
@@ -173,6 +205,8 @@ class NeuralScheduler:
     def clear(self) -> None:
         """Drop all queued (not running) jobs."""
         for job in list(self._queue):
-            if job.status == QUEUED:
+            if job.id in self._live:
                 self._queue.remove(job)
                 del self._jobs[job.id]
+                self._live.discard(job.id)
+                self._born.pop(job.id, None)

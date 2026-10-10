@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import abc
 import logging
+import math
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Optional, Tuple
@@ -374,8 +375,8 @@ class Compositor:
 
     def tick(self, dt: float) -> None:
         """Advance the HUD by ``dt`` seconds and render one frame."""
-        if dt <= 0:
-            raise ValueError("dt must be positive")
+        if not math.isfinite(dt) or dt <= 0:
+            raise ValueError("dt must be a positive finite number")
         self.frames += 1
         self._elapsed += dt
         self._apply_layout()

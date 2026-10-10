@@ -29,10 +29,17 @@ EMBED_DIM = 128
 _TOKEN_RE = re.compile(r"[a-z0-9]+", re.IGNORECASE)
 
 
-def _bucket_and_sign(token: str) -> tuple[int, float]:
-    """Map a token to ``(bucket_index, sign)`` deterministically."""
+def _bucket_and_sign(token: str, dim: int = EMBED_DIM) -> tuple[int, float]:
+    """Map a token to ``(bucket_index, sign)`` deterministically.
+
+    ``dim`` is the target vector dimensionality; the bucket index is
+    always taken modulo ``dim`` so smaller (or larger) vectors never
+    index out of range.
+    """
+    if dim <= 0:
+        raise ValueError(f"dim must be positive, got {dim}")
     digest = hashlib.sha256(token.encode("utf-8")).digest()
-    index = int.from_bytes(digest[:8], "big") % EMBED_DIM
+    index = int.from_bytes(digest[:8], "big") % dim
     # A second independent hash decides the sign, halving collisions.
     sign_digest = hashlib.sha256(b"sign:" + token.encode("utf-8")).digest()
     sign = 1.0 if (sign_digest[0] & 1) else -1.0
@@ -44,7 +51,7 @@ def _raw_vector(text: str, dim: int = EMBED_DIM) -> List[float]:
     vec = [0.0] * dim
     tokens = _TOKEN_RE.findall(text.lower())
     for token in tokens:
-        index, sign = _bucket_and_sign(token)
+        index, sign = _bucket_and_sign(token, dim)
         vec[index] += sign
     # Whole-text digest seeds bucket 0 so degenerate inputs (empty
     # string, pure punctuation) still embed to a stable direction.
