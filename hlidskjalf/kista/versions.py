@@ -16,7 +16,13 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from hlidskjalf.kista._compat import NotFoundError, ValidationError, get_logger, new_id
+from hlidskjalf.kista._compat import (
+    NotFoundError,
+    StorageError,
+    ValidationError,
+    get_logger,
+    new_id,
+)
 from hlidskjalf.kista.store import ArtifactStore
 
 log = get_logger(__name__)
@@ -46,7 +52,12 @@ class VersionGraph:
         path = self._path(version_id)
         if not path.exists():
             raise NotFoundError(f"version not found: {version_id}")
-        return json.loads(path.read_text())
+        try:
+            return json.loads(path.read_text())
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError) as exc:
+            raise StorageError(
+                f"corrupt version record {version_id} at {path}: {exc}"
+            ) from exc
 
     def list_version_ids(self) -> List[str]:
         return sorted(

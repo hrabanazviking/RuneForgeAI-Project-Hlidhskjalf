@@ -13,10 +13,11 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set
 
-from hlidskjalf.kista._compat import get_logger, new_id
+from hlidskjalf.kista._compat import NotFoundError, get_logger, new_id
 from hlidskjalf.kista.store import ArtifactStore
 
 log = get_logger(__name__)
@@ -56,10 +57,28 @@ class ArtifactIndex:
     def load(self) -> None:
         if not self.path.exists():
             return
-        data = json.loads(self.path.read_text())
-        self._tags = {k: set(v) for k, v in data.get("tags", {}).items()}
-        self._terms = {k: set(v) for k, v in data.get("terms", {}).items()}
-        self._docs = data.get("docs", {})
+        try:
+            data = json.loads(self.path.read_text())
+            tags = {k: set(v) for k, v in data.get("tags", {}).items()}
+            terms = {k: set(v) for k, v in data.get("terms", {}).items()}
+            docs = data.get("docs", {})
+            if not isinstance(docs, dict):
+                raise ValueError("index docs must be an object")
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError,
+                ValueError, AttributeError, TypeError) as exc:
+            # Corrupt index: quarantine it and rebuild from the store so the
+            # index self-heals instead of killing the constructor.
+            stamp = int(time.time())
+            quarantine = self.path.with_name(f"{self.path.name}.corrupt-{stamp}")
+            try:
+                self.path.rename(quarantine)
+            except OSError:
+                log.warning("kista.index.quarantine_failed path=%s", self.path)
+                quarantine = None
+            log.warning("kista.index.corrupt quarantined=%s error=%s", quarantine, exc)
+            self.rebuild()
+            return
+        self._tags, self._terms, self._docs = tags, terms, docs
 
     # -- mutation ------------------------------------------------------
     def add(
@@ -70,6 +89,8 @@ class ArtifactIndex:
     ) -> None:
         """Index an artifact. Falls back to decoding the artifact bytes."""
         tags = sorted(set(tags or []))
+        if not self.store.exists(digest):
+            raise NotFoundError(f"cannot index unknown digest: {digest}")
         if text is None:
             try:
                 text = self.store.get(digest).decode("utf-8", errors="strict")

@@ -124,14 +124,14 @@ class TestCrypto:
     def test_seal_open_round_trip(self):
         km = crypto.KeyManager()
         km.generate("k1")
-        enc = crypto.EncryptedStore(km)
+        enc = crypto.EncryptedStore(km, allow_insecure=True)
         blob = enc.seal(b"secret bytes")
         assert blob != b"secret bytes"
         assert enc.open(blob) == b"secret bytes"
 
     def test_key_rotation(self):
         km = crypto.KeyManager()
-        enc = crypto.EncryptedStore(km)
+        enc = crypto.EncryptedStore(km, allow_insecure=True)
         old = enc.seal(b"before")
         km.rotate()
         new = enc.seal(b"after")
@@ -142,12 +142,12 @@ class TestCrypto:
     def test_keyring_save_load(self, tmp_path):
         km = crypto.KeyManager()
         km.generate("persist")
-        enc = crypto.EncryptedStore(km)
+        enc = crypto.EncryptedStore(km, allow_insecure=True)
         blob = enc.seal(b"keep me")
         p = tmp_path / "keys.json"
         km.save(p)
         km2 = crypto.KeyManager.load(p)
-        assert crypto.EncryptedStore(km2).open(blob) == b"keep me"
+        assert crypto.EncryptedStore(km2, allow_insecure=True).open(blob) == b"keep me"
 
     def test_unknown_key_rejected(self):
         km = crypto.KeyManager()
@@ -156,7 +156,7 @@ class TestCrypto:
 
     def test_envelope_magic(self):
         km = crypto.KeyManager()
-        enc = crypto.EncryptedStore(km)
+        enc = crypto.EncryptedStore(km, allow_insecure=True)
         blob = enc.seal(b"x")
         assert blob.startswith(crypto.ENVELOPE_MAGIC)
 

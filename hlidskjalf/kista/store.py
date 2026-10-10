@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
@@ -34,6 +35,10 @@ log = get_logger(__name__)
 
 META_SCHEMA_VERSION = 1
 
+# Digests are always 64 lowercase hex chars (SHA-256). Anything else is
+# rejected before it can influence a filesystem path (B1: path traversal).
+_DIGEST_RE = re.compile(r"[0-9a-f]{64}")
+
 
 class ArtifactStore:
     """Filesystem-backed content-addressed store."""
@@ -46,11 +51,27 @@ class ArtifactStore:
             d.mkdir(parents=True, exist_ok=True)
 
     # -- paths ---------------------------------------------------------
+    @staticmethod
+    def _validate_digest(digest: object) -> None:
+        """Reject anything that is not a 64-char lowercase hex digest."""
+        if not isinstance(digest, str) or not _DIGEST_RE.fullmatch(digest):
+            raise ValidationError(f"invalid artifact digest: {digest!r}")
+
+    def _contained(self, path: Path) -> Path:
+        """Defense in depth: the resolved path must stay inside the vault."""
+        root = self.root.resolve()
+        resolved = path.resolve()
+        if not resolved.is_relative_to(root):
+            raise ValidationError(f"path escapes vault root: {path}")
+        return resolved
+
     def _object_path(self, digest: str) -> Path:
-        return self.objects / digest[:2] / digest[2:]
+        self._validate_digest(digest)
+        return self._contained(self.objects / digest[:2] / digest[2:])
 
     def _meta_path(self, digest: str) -> Path:
-        return self.meta / digest[:2] / (digest[2:] + ".json")
+        self._validate_digest(digest)
+        return self._contained(self.meta / digest[:2] / (digest[2:] + ".json"))
 
     @staticmethod
     def _digest(data: bytes) -> str:
@@ -79,6 +100,30 @@ class ArtifactStore:
         """Store bytes; return the SHA-256 hex digest. Idempotent."""
         if not isinstance(data, (bytes, bytearray)):
             raise ValidationError("data must be bytes")
+        # Validate tags up front: every tag must be a string.
+        try:
+            tag_list = list(tags) if tags is not None else []
+        except TypeError as exc:
+            raise ValidationError(f"tags must be an iterable of strings: {exc}") from exc
+        for tag in tag_list:
+            if not isinstance(tag, str):
+                raise ValidationError(
+                    f"tags must be strings, got {type(tag).__name__}: {tag!r}"
+                )
+        # Validate meta up front: must be a JSON-serializable mapping.
+        if meta is None:
+            meta_dict: Dict[str, Any] = {}
+        else:
+            try:
+                meta_dict = dict(meta)
+            except (TypeError, ValueError) as exc:
+                raise ValidationError(f"meta must be a mapping: {exc}") from exc
+            try:
+                json.dumps(meta_dict)
+            except (TypeError, ValueError) as exc:
+                raise ValidationError(
+                    f"meta must be JSON-serializable: {exc}"
+                ) from exc
         payload = bytes(data)
         digest = self._digest(payload)
 
@@ -91,8 +136,8 @@ class ArtifactStore:
             "hash": digest,
             "size": len(payload),
             "created_at": time.time(),
-            "tags": sorted(set(tags or [])),
-            "meta": dict(meta or {}),
+            "tags": sorted(set(tag_list)),
+            "meta": meta_dict,
         }
         self._atomic_write(self._meta_path(digest), json.dumps(sidecar, indent=2).encode())
         log.debug("kista.put hash=%s size=%d", digest[:12], len(payload))
@@ -113,8 +158,13 @@ class ArtifactStore:
         path = self._meta_path(digest)
         if not path.exists():
             raise NotFoundError(f"artifact metadata not found: {digest}")
-        with open(path, "rb") as fh:
-            return json.loads(fh.read().decode())
+        try:
+            with open(path, "rb") as fh:
+                return json.loads(fh.read().decode())
+        except (json.JSONDecodeError, UnicodeDecodeError, OSError) as exc:
+            raise StorageError(
+                f"corrupt metadata for {digest} at {path}: {exc}"
+            ) from exc
 
     def delete(self, digest: str) -> bool:
         """Remove artifact + sidecar. Returns True if something was removed."""

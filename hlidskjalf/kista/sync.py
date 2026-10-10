@@ -16,6 +16,7 @@ bytes — only sidecar metadata can diverge, and newest-wins resolves it.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -24,7 +25,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List
 
-from hlidskjalf.kista._compat import get_logger
+from hlidskjalf.kista._compat import StorageError, get_logger
 from hlidskjalf.kista.store import ArtifactStore
 
 log = get_logger(__name__)
@@ -36,6 +37,8 @@ class SyncReport:
     pulled: List[str] = field(default_factory=list)
     metadata_conflicts: List[str] = field(default_factory=list)
     conflict_resolutions: List[Dict] = field(default_factory=list)
+    verified_copies: int = 0
+    failed_copies: int = 0
 
     def as_dict(self) -> dict:
         return {
@@ -43,6 +46,8 @@ class SyncReport:
             "pulled": sorted(self.pulled),
             "metadata_conflicts": sorted(self.metadata_conflicts),
             "conflict_resolutions": self.conflict_resolutions,
+            "verified_copies": self.verified_copies,
+            "failed_copies": self.failed_copies,
         }
 
 
@@ -83,11 +88,27 @@ def diff_manifests(
 
 
 def _copy_artifact(src: ArtifactStore, dst: ArtifactStore, digest: str) -> None:
+    """Copy one artifact + sidecar, verifying destination integrity.
+
+    The destination bytes are re-hashed after the copy; on mismatch the
+    bad copy is deleted and StorageError is raised so tampered reads can
+    never replicate under a digest they do not match.
+    """
     dst._atomic_write(dst._object_path(digest), src.get(digest))
     dst._atomic_write(
         dst._meta_path(digest),
         json.dumps(src.get_meta(digest)).encode(),
     )
+    actual = hashlib.sha256(dst.get(digest)).hexdigest()
+    if actual != digest:
+        try:
+            dst.delete(digest)
+        except Exception:  # noqa: BLE001 - best-effort cleanup of the bad copy
+            pass
+        raise StorageError(
+            f"integrity check failed copying {digest}: "
+            f"destination holds bytes hashing to {actual}"
+        )
 
 
 def _resolve_metadata_conflict(
@@ -123,8 +144,13 @@ class VaultSync:
         report = SyncReport()
         diff = self.compare()
         for digest in diff["missing_in_remote"]:
-            _copy_artifact(self.local, self.remote, digest)
+            try:
+                _copy_artifact(self.local, self.remote, digest)
+            except StorageError:
+                report.failed_copies += 1
+                raise
             report.pushed.append(digest)
+            report.verified_copies += 1
         if resolve_conflicts:
             for digest in diff["metadata_conflicts"]:
                 report.metadata_conflicts.append(digest)
@@ -138,8 +164,13 @@ class VaultSync:
         report = SyncReport()
         diff = self.compare()
         for digest in diff["missing_in_local"]:
-            _copy_artifact(self.remote, self.local, digest)
+            try:
+                _copy_artifact(self.remote, self.local, digest)
+            except StorageError:
+                report.failed_copies += 1
+                raise
             report.pulled.append(digest)
+            report.verified_copies += 1
         if resolve_conflicts:
             for digest in diff["metadata_conflicts"]:
                 report.metadata_conflicts.append(digest)
@@ -158,4 +189,6 @@ class VaultSync:
             pulled=pulled.pulled,
             metadata_conflicts=sorted(set(pushed.metadata_conflicts) | set(pulled.metadata_conflicts)),
             conflict_resolutions=pushed.conflict_resolutions + pulled.conflict_resolutions,
+            verified_copies=pushed.verified_copies + pulled.verified_copies,
+            failed_copies=pushed.failed_copies + pulled.failed_copies,
         )
