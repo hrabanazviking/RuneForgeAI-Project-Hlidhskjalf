@@ -31,9 +31,24 @@ PROTOCOL_VERSION = 1
 #: Versions this runtime accepts. Bump deliberately; never accept unknowns.
 SUPPORTED_VERSIONS = frozenset({1})
 
+#: Maximum serialized envelope size accepted by :func:`build` and
+#: :func:`parse`. Oversize envelopes are rejected with ValidationError so a
+#: single giant payload cannot exhaust memory downstream.
+MAX_ENVELOPE_BYTES = 16 * 1024 * 1024
+
 _TYPE_RE = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$")
 
 RawEnvelope = Union[str, bytes, bytearray, Mapping[str, Any]]
+
+
+def _check_size(serialized: str) -> None:
+    """Reject serialized envelopes larger than :data:`MAX_ENVELOPE_BYTES`."""
+    size = len(serialized.encode("utf-8"))
+    if size > MAX_ENVELOPE_BYTES:
+        raise ValidationError(
+            f"envelope exceeds {MAX_ENVELOPE_BYTES} bytes ({size} bytes)",
+            details={"size_bytes": size, "max_bytes": MAX_ENVELOPE_BYTES},
+        )
 
 
 def build(
@@ -48,7 +63,8 @@ def build(
     """Build a new envelope dict.
 
     Raises:
-        ValidationError: ``msg_type`` / ``payload`` are malformed.
+        ValidationError: ``msg_type`` / ``payload`` are malformed, or the
+            serialized envelope exceeds ``MAX_ENVELOPE_BYTES``.
     """
     if not isinstance(msg_type, str) or not _TYPE_RE.match(msg_type):
         raise ValidationError(
@@ -65,7 +81,7 @@ def build(
     meta_obj = dict(meta or {})
     if not isinstance(meta_obj, dict):
         raise ValidationError("envelope meta must be a JSON object")
-    return {
+    env = {
         "v": PROTOCOL_VERSION,
         "id": msg_id or new_id(),
         "ts": float(ts if ts is not None else time.time()),
@@ -74,6 +90,8 @@ def build(
         "payload": dict(payload),
         "meta": meta_obj,
     }
+    _check_size(dumps(env))
+    return env
 
 
 def dumps(envelope: Mapping[str, Any]) -> str:
@@ -132,9 +150,16 @@ def validate(envelope: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 def parse(raw: RawEnvelope) -> Dict[str, Any]:
-    """Decode and validate an envelope from JSON text/bytes or a dict."""
+    """Decode and validate an envelope from JSON text/bytes or a dict.
+
+    Raises:
+        ValidationError: Input is not valid JSON, fails validation, or
+            exceeds ``MAX_ENVELOPE_BYTES``.
+    """
     if isinstance(raw, Mapping):
-        return validate(raw)
+        env = validate(raw)
+        _check_size(dumps(env))
+        return env
     if isinstance(raw, (bytes, bytearray)):
         raw = bytes(raw).decode("utf-8")
     if not isinstance(raw, str):
@@ -142,6 +167,7 @@ def parse(raw: RawEnvelope) -> Dict[str, Any]:
             "cannot parse envelope from non-string input",
             details={"type": type(raw).__name__},
         )
+    _check_size(raw)
     try:
         decoded = json.loads(raw)
     except json.JSONDecodeError as exc:

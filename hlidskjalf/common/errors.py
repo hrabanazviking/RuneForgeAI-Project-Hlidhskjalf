@@ -147,7 +147,12 @@ def error_from_dict(data: Mapping[str, Any]) -> HlidskjalfError:
     body = data.get("error", {}) if isinstance(data, Mapping) else {}
     code = body.get("code", "internal")
     cls = CODE_TO_ERROR.get(code, HlidskjalfError)
+    raw_details = body.get("details", {}) or {}
+    if not isinstance(raw_details, Mapping):
+        # Tolerate non-dict details (e.g. a plain string from a foreign
+        # producer) instead of raising a raw ValueError from dict().
+        raw_details = {"value": raw_details}
     return cls(
         body.get("message", code),
-        details=dict(body.get("details", {}) or {}),
+        details=dict(raw_details),
     )

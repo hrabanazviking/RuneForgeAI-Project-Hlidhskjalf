@@ -29,17 +29,46 @@ log = get_logger("protocol.bus")
 class Bus:
     """Thread-safe in-process message bus."""
 
-    def __init__(self, name: str = "bus") -> None:
+    def __init__(self, name: str = "bus", **options: Any) -> None:
+        """Create the bus.
+
+        Args:
+            name: Bus name (used for the dispatcher thread and logs).
+            options: Optional keyword options:
+                ``maxsize`` — bound on the inbox queue (default 10000).
+                ``config`` — a config object exposing ``get(dotted, default)``;
+                    ``protocol.inbox_maxsize`` overrides ``maxsize`` when it
+                    is a positive int.
+        """
+        unknown = set(options) - {"maxsize", "config"}
+        if unknown:
+            raise TypeError(f"unexpected Bus options: {sorted(unknown)}")
         self.name = name
+        maxsize = options.get("maxsize", 10000)
+        config = options.get("config")
+        # Honour an explicit config value when provided; ignore anything that
+        # is not a positive int so a bad config value cannot silently wedge
+        # the inbox (fall back to the ``maxsize`` option instead).
+        configured = (
+            config.get("protocol.inbox_maxsize", None) if config is not None else None
+        )
+        if (
+            isinstance(configured, int)
+            and not isinstance(configured, bool)
+            and configured > 0
+        ):
+            maxsize = configured
+        self._inbox_maxsize = maxsize
         self._subs: Dict[str, List[Handler]] = {}
         self._wildcards: List[Tuple[str, Handler]] = []
-        self._inbox: "queue.Queue[Dict[str, Any]]" = queue.Queue()
+        self._inbox: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=maxsize)
         self._pending: Dict[str, "queue.Queue[Dict[str, Any]]"] = {}
         self._lock = threading.Lock()
         self._thread: Optional[threading.Thread] = None
         self._running = False
         self._stats = {"published": 0, "delivered": 0, "handler_errors": 0,
-                       "requests": 0, "replies": 0, "timeouts": 0}
+                       "requests": 0, "replies": 0, "timeouts": 0,
+                       "dropped": 0, "duplicate_replies_dropped": 0}
         self._started_at = time.time()
 
     # ------------------------------------------------------------------
@@ -124,12 +153,31 @@ class Bus:
         return self.publish_envelope(env)
 
     def publish_envelope(self, envelope: Mapping[str, Any]) -> Dict[str, Any]:
-        """Fan out an already-built (and validated) envelope."""
+        """Fan out an already-built (and validated) envelope.
+
+        Never blocks: on a full inbox the oldest queued message is shed
+        (drop-oldest) and counted in ``stats()["dropped"]``.
+        """
         env = env_mod.validate(envelope)
         self.start()
         with self._lock:
             self._stats["published"] += 1
-        self._inbox.put(env)
+        try:
+            self._inbox.put_nowait(env)
+        except queue.Full:
+            # Bounded backpressure: shed the oldest queued message so the
+            # producer never blocks and the dispatcher never starves.
+            try:
+                self._inbox.get_nowait()
+            except queue.Empty:  # raced with the dispatcher; nothing to shed
+                pass
+            self._inbox.put_nowait(env)
+            with self._lock:
+                self._stats["dropped"] += 1
+            log.warning(
+                "bus inbox full: dropped oldest message",
+                extra={"bus": self.name, "maxsize": self._inbox_maxsize},
+            )
         return env
 
     # ------------------------------------------------------------------
@@ -150,6 +198,11 @@ class Bus:
             errors.TimeoutError: No reply arrived within ``timeout``.
         """
         corr = new_id()
+        if timeout < 0:
+            raise errors.ValidationError(
+                f"request timeout must be >= 0, got {timeout!r}",
+                details={"timeout": timeout, "msg_type": msg_type},
+            )
         reply_q: "queue.Queue[Dict[str, Any]]" = queue.Queue(maxsize=1)
         with self._lock:
             self._pending[corr] = reply_q
@@ -196,7 +249,18 @@ class Bus:
             pending = self._pending.get(corr)
             self._stats["replies"] += 1
         if pending is not None:
-            pending.put(env)
+            # Never block: the requester may already hold a reply in this
+            # maxsize=1 queue (duplicate/late reply). Shed it and count it
+            # rather than wedging the caller forever.
+            try:
+                pending.put_nowait(env)
+            except queue.Full:
+                with self._lock:
+                    self._stats["duplicate_replies_dropped"] += 1
+                log.warning(
+                    "duplicate reply dropped (requester queue full)",
+                    extra={"bus": self.name, "correlation_id": corr},
+                )
         else:
             # Nobody is waiting; still fan out so observers can see it.
             self._inbox.put(env)
@@ -219,7 +283,19 @@ class Bus:
             with self._lock:
                 pending = self._pending.get(corr)
             if pending is not None:
-                pending.put(env)
+                # Never block here: a duplicate/late reply for an already-
+                # satisfied request must not wedge the dispatcher thread
+                # (which would silently drop every later message). Shed the
+                # duplicate, count it, and keep dispatching.
+                try:
+                    pending.put_nowait(env)
+                except queue.Full:
+                    with self._lock:
+                        self._stats["duplicate_replies_dropped"] += 1
+                    log.warning(
+                        "duplicate reply dropped (queue full)",
+                        extra={"bus": self.name, "correlation_id": corr},
+                    )
                 return
         for handler in self._handlers_for(str(env.get("type"))):
             try:

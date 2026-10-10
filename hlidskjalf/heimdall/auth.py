@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, Mapping, Optional
 
-from hlidskjalf.common.errors import AuthError
+from hlidskjalf.common.errors import AuthError, ValidationError
 from hlidskjalf.common.logging import bind, get_logger
 
 log = get_logger("heimdall.auth")
@@ -56,6 +56,11 @@ class Authenticator:
     def _add_entry(self, entry: str) -> None:
         # Accept "key" (principal derived from fingerprint) or "name:key"
         # where name looks like a principal name.
+        if not isinstance(entry, str):
+            raise ValidationError(
+                f"api key entry must be a string, got {type(entry).__name__}",
+                details={"entry_type": type(entry).__name__},
+            )
         principal, key = "", entry.strip()
         if ":" in entry:
             maybe_name, _, maybe_key = entry.partition(":")

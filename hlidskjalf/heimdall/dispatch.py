@@ -87,6 +87,14 @@ class Dispatcher:
                 details={"msg_type": msg_type, "cause": str(exc)},
             ) from exc
         if not isinstance(result, Mapping):
+            # A non-mapping return is a DispatchError AND is dead-lettered,
+            # like every other handler failure.
+            self._to_dead_letter(
+                env, f"handler returned non-mapping result for {msg_type!r}"
+            )
+            with self._lock:
+                self._stats["errors"] += 1
+            audit.warning("dead-lettered: handler returned non-mapping result")
             raise DispatchError(
                 f"handler for {msg_type!r} must return a mapping",
                 details={"msg_type": msg_type},

@@ -48,6 +48,37 @@ SECRET_KEYS = {"heimdall.auth.api_keys"}
 # minimal YAML reader (simple mapping/scalar subset)
 # ---------------------------------------------------------------------------
 
+def _strip_comment(line: str) -> str:
+    """Strip a trailing ``#`` comment, honouring quoted strings.
+
+    A ``#`` inside single or double quotes is part of the value, e.g.
+    ``greeting: "hello # not a comment"`` keeps the ``#``. Handles
+    backslash escapes inside double quotes.
+    """
+    out: List[str] = []
+    quote: Optional[str] = None
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if quote is not None:
+            out.append(ch)
+            if ch == "\\" and quote == '"' and i + 1 < len(line):
+                out.append(line[i + 1])
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+        elif ch in ("'", '"'):
+            quote = ch
+            out.append(ch)
+        elif ch == "#":
+            break
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out).rstrip()
+
+
 def _parse_scalar(text: str) -> Any:
     text = text.strip()
     if text in ("", "~", "null", "Null", "NULL"):
@@ -91,7 +122,7 @@ def load_yaml(path: str | Path) -> Dict[str, Any]:
 
     items: List[Tuple[int, str]] = []
     for raw in raw_lines:
-        line = raw.split("#", 1)[0].rstrip()
+        line = _strip_comment(raw)
         if not line.strip():
             continue
         indent = len(line) - len(line.lstrip(" "))
@@ -179,14 +210,31 @@ def _get_dotted(tree: Mapping[str, Any], dotted: str) -> Any:
     return node
 
 
-def _coerce(value: str, template: Any) -> Any:
-    """Coerce an env-var string to the type of the default it overrides."""
+def _coerce(value: str, template: Any, var_name: str = "(unknown)") -> Any:
+    """Coerce an env-var string to the type of the default it overrides.
+
+    Raises:
+        ConfigError: The value cannot be coerced to the expected type; the
+            message names the offending environment variable.
+    """
     if isinstance(template, bool):
         return value.strip().lower() in ("1", "true", "yes", "on")
     if isinstance(template, int):
-        return int(value)
+        try:
+            return int(value)
+        except (TypeError, ValueError) as exc:
+            raise ConfigError(
+                f"env var {var_name} must be an int, got {value!r}",
+                details={"var": var_name, "value": value},
+            ) from exc
     if isinstance(template, float):
-        return float(value)
+        try:
+            return float(value)
+        except (TypeError, ValueError) as exc:
+            raise ConfigError(
+                f"env var {var_name} must be a float, got {value!r}",
+                details={"var": var_name, "value": value},
+            ) from exc
     if isinstance(template, list):
         return [item.strip() for item in value.split(",") if item.strip()]
     return value
@@ -200,7 +248,7 @@ def _env_overrides() -> Dict[str, Any]:
             continue
         dotted = name[len(ENV_PREFIX):].lower().replace("__", ".")
         template = _get_dotted(DEFAULTS, dotted)
-        _set_dotted(tree, dotted, _coerce(value, template))
+        _set_dotted(tree, dotted, _coerce(value, template, name))
     return tree
 
 
@@ -213,11 +261,16 @@ def _check(condition: bool, message: str, problems: List[str]) -> None:
         problems.append(message)
 
 
+def _is_int(value: Any) -> bool:
+    """True for real ints; ``bool`` is an int subclass and must not pass."""
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
 def validate(cfg: Mapping[str, Any]) -> None:
     """Validate an effective config; raise :class:`ConfigError` on problems."""
     problems: List[str] = []
     version = cfg.get("version")
-    _check(isinstance(version, int) and version == 1,
+    _check(_is_int(version) and version == 1,
            f"'version' must be 1, got {version!r}", problems)
 
     log_level = str(_get_dotted(cfg, "logging.level") or "").upper()
@@ -225,11 +278,11 @@ def validate(cfg: Mapping[str, Any]) -> None:
            f"'logging.level' invalid: {log_level!r}", problems)
 
     port = _get_dotted(cfg, "heimdall.port")
-    _check(isinstance(port, int) and 1 <= port <= 65535,
+    _check(_is_int(port) and 1 <= port <= 65535,
            f"'heimdall.port' must be 1-65535, got {port!r}", problems)
 
     fps = _get_dotted(cfg, "hud.fps")
-    _check(isinstance(fps, int) and fps > 0,
+    _check(_is_int(fps) and fps > 0,
            f"'hud.fps' must be a positive int, got {fps!r}", problems)
 
     keys = _get_dotted(cfg, "heimdall.auth.api_keys")
@@ -237,7 +290,7 @@ def validate(cfg: Mapping[str, Any]) -> None:
            "'heimdall.auth.api_keys' must be a list of strings", problems)
 
     dlm = _get_dotted(cfg, "heimdall.dead_letter_max")
-    _check(isinstance(dlm, int) and dlm > 0,
+    _check(_is_int(dlm) and dlm > 0,
            f"'heimdall.dead_letter_max' must be positive, got {dlm!r}", problems)
 
     if problems:
