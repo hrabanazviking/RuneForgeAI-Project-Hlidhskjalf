@@ -24,6 +24,10 @@ class Timeline:
 
     def __init__(self) -> None:
         self._events: List[Dict[str, Any]] = []
+        #: Parallel sort keys (ts, seq) kept in the same order as
+        #: ``_events`` so appends bisect into it directly instead of
+        #: rebuilding the key list on every append (was O(n^2)).
+        self._keys: List[tuple] = []
         self._by_id: Dict[str, Dict[str, Any]] = {}
         self._seq = 0
 
@@ -47,8 +51,8 @@ class Timeline:
         }
         self._seq += 1
         key = (event["ts"], event["seq"])
-        keys = [(e["ts"], e["seq"]) for e in self._events]
-        pos = bisect.bisect_right(keys, key)
+        pos = bisect.bisect_right(self._keys, key)
+        self._keys.insert(pos, key)
         self._events.insert(pos, event)
         self._by_id[event["id"]] = event
         return event["id"]
@@ -106,6 +110,7 @@ class Timeline:
             tl._by_id[event["id"]] = tl._events[-1]
         tl._seq = int(data.get("seq", len(tl._events)))
         tl._events.sort(key=lambda e: (e["ts"], e["seq"]))
+        tl._keys = [(e["ts"], e["seq"]) for e in tl._events]
         return tl
 
     def save(self, path: str) -> None:

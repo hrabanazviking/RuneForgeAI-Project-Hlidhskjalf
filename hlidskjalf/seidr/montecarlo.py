@@ -90,6 +90,11 @@ def run_ensemble(
         outcome = outcome_fn(trace)
         if not isinstance(outcome, (int, float)) or isinstance(outcome, bool):
             raise TypeError("outcome_fn must return a numeric outcome")
+        if not math.isfinite(outcome):
+            raise ValueError(
+                "outcome_fn must return a finite outcome "
+                f"(got non-finite outcome {outcome!r} on seed {seed + i})"
+            )
         outcomes.append(float(outcome))
 
     mean = statistics.fmean(outcomes)

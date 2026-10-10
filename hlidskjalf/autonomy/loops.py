@@ -18,6 +18,7 @@ Stdlib only.
 from __future__ import annotations
 
 import logging
+import math
 import time
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional
@@ -64,9 +65,9 @@ class LoopSpec:
     def __post_init__(self) -> None:
         if not self.name:
             raise ValueError("LoopSpec.name must be non-empty")
-        if self.interval_s <= 0:
+        if math.isnan(self.interval_s) or self.interval_s <= 0:
             raise ValueError(
-                f"LoopSpec.interval_s must be > 0 (got {self.interval_s!r})"
+                f"LoopSpec.interval_s must be a finite value > 0 (got {self.interval_s!r})"
             )
         if not callable(self.fn):
             raise TypeError("LoopSpec.fn must be callable")
@@ -128,6 +129,10 @@ class AutonomousLoops:
         :param intervals: overrides for built-in loop cadences, e.g.
             ``{"simulation_tick": 10.0}``.
         """
+        if not math.isfinite(start):
+            raise ValueError(
+                f"AutonomousLoops start must be a finite number (got {start!r})"
+            )
         self._clock: float = float(start)
         self._loops: Dict[str, LoopSpec] = {}
         #: Observable record of loop activity; stubs and custom loops
@@ -192,6 +197,10 @@ class AutonomousLoops:
         sleeps; never raises because of a loop failure (failures are
         recorded on the spec and logged).
         """
+        if not math.isfinite(dt):
+            raise ValueError(
+                f"tick dt must be a finite, non-negative number (got {dt!r})"
+            )
         if dt < 0:
             raise ValueError(f"tick dt must be >= 0 (got {dt!r})")
         self._clock += dt
