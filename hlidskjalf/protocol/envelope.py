@@ -18,6 +18,7 @@ Unknown / unsupported protocol versions are rejected outright.
 from __future__ import annotations
 
 import json
+import math
 import re
 import time
 from typing import Any, Dict, Mapping, Optional, Union
@@ -81,6 +82,16 @@ def build(
     meta_obj = dict(meta or {})
     if not isinstance(meta_obj, dict):
         raise ValidationError("envelope meta must be a JSON object")
+    if ts is not None and (
+        isinstance(ts, bool)
+        or not isinstance(ts, (int, float))
+        or not math.isfinite(ts)
+        or ts < 0
+    ):
+        raise ValidationError(
+            "envelope 'ts' must be a finite, non-negative number",
+            details={"ts": ts},
+        )
     env = {
         "v": PROTOCOL_VERSION,
         "id": msg_id or new_id(),
@@ -114,7 +125,9 @@ def validate(envelope: Mapping[str, Any]) -> Dict[str, Any]:
     env = dict(envelope)
 
     version = env.get("v")
-    if version not in SUPPORTED_VERSIONS:
+    # A real int is required: True and 1.0 compare equal to 1 and used to
+    # pass the membership test against SUPPORTED_VERSIONS.
+    if isinstance(version, bool) or not isinstance(version, int) or version not in SUPPORTED_VERSIONS:
         raise ProtocolError(
             f"unsupported protocol version: {version!r}",
             details={"version": version, "supported": sorted(SUPPORTED_VERSIONS)},
@@ -126,8 +139,13 @@ def validate(envelope: Mapping[str, Any]) -> Dict[str, Any]:
                               details={"id": msg_id})
 
     ts = env.get("ts")
-    if not isinstance(ts, (int, float)) or isinstance(ts, bool) or ts < 0:
-        raise ValidationError("envelope 'ts' must be a non-negative number",
+    if (
+        not isinstance(ts, (int, float))
+        or isinstance(ts, bool)
+        or not math.isfinite(ts)
+        or ts < 0
+    ):
+        raise ValidationError("envelope 'ts' must be a finite, non-negative number",
                               details={"ts": ts})
 
     msg_type = env.get("type")

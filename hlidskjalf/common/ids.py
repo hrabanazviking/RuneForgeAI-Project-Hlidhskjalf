@@ -13,6 +13,7 @@ the same millisecond.
 
 from __future__ import annotations
 
+import math
 import os
 import re
 import threading
@@ -52,7 +53,15 @@ def new_id(at: float | None = None) -> str:
             Useful for deterministic tests.
     """
     global _last_ms, _last_rand
+    if at is not None and (
+        isinstance(at, bool) or not isinstance(at, (int, float)) or not math.isfinite(at)
+    ):
+        raise ValueError(f"timestamp must be a finite number, got {at!r}")
     ms = int((at if at is not None else time.time()) * 1000)
+    if not 0 <= ms < (1 << 48):
+        # Outside the 48-bit ULID timestamp field the encoding wraps and
+        # timestamp_ms() would decode a different time than was embedded.
+        raise ValueError(f"timestamp out of range for a 48-bit id: {at!r}")
     with _lock:
         if ms <= _last_ms:
             # Same (or earlier) millisecond: bump randomness to stay monotonic.

@@ -92,6 +92,11 @@ class Authenticator:
         Raises:
             AuthError: Missing, empty, unknown, or mismatched credential.
         """
+        if credential is not None and not isinstance(credential, str):
+            raise AuthError(
+                "invalid credentials",
+                details={"reason": "invalid_type", "type": type(credential).__name__},
+            )
         audit = bind(log, key_fingerprint=fingerprint(credential or ""))
         if not credential or not credential.strip():
             audit.warning("auth rejected: missing credential")
@@ -116,6 +121,8 @@ class Authenticator:
         """Pull the token from an ``Authorization: Bearer <key>`` header."""
         for name, value in headers.items():
             if name.lower() == "authorization":
+                if not isinstance(value, str):
+                    return None
                 scheme, _, token = value.partition(" ")
                 if scheme.lower() == "bearer" and token.strip():
                     return token.strip()

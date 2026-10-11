@@ -23,6 +23,7 @@ null. Constraints: required, enum, min/max (numeric), min_length/max_length
 
 from __future__ import annotations
 
+import math
 import re
 from typing import Any, Dict, List, Mapping, Optional
 
@@ -40,7 +41,11 @@ def _check_type(value: Any, want: str) -> bool:
     if want == "integer":
         return isinstance(value, int) and not isinstance(value, bool)
     if want == "number":
-        return isinstance(value, (int, float)) and not isinstance(value, bool)
+        return (
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and math.isfinite(value)
+        )
     if want == "boolean":
         return isinstance(value, bool)
     if want == "array":
@@ -70,6 +75,9 @@ def _validate_value(value: Any, spec: Mapping[str, Any], path: str) -> List[str]
         problems.append(f"{path}: {value!r} not in {enum!r}")
 
     if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if isinstance(value, float) and not math.isfinite(value):
+            problems.append(f"{path}: must be a finite number")
+            return problems
         if spec.get("min") is not None and value < spec["min"]:
             problems.append(f"{path}: {value!r} < min {spec['min']!r}")
         if spec.get("max") is not None and value > spec["max"]:
@@ -81,8 +89,14 @@ def _validate_value(value: Any, spec: Mapping[str, Any], path: str) -> List[str]
         if spec.get("max_length") is not None and len(value) > spec["max_length"]:
             problems.append(f"{path}: longer than max_length {spec['max_length']}")
         pattern = spec.get("pattern")
-        if pattern and not re.search(pattern, value):
-            problems.append(f"{path}: does not match pattern {pattern!r}")
+        if pattern:
+            try:
+                matched = re.search(pattern, value)
+            except re.error:
+                problems.append(f"{path}: invalid schema pattern {pattern!r}")
+            else:
+                if not matched:
+                    problems.append(f"{path}: does not match pattern {pattern!r}")
 
     if isinstance(value, list) and "items" in spec:
         item_spec = spec["items"]
