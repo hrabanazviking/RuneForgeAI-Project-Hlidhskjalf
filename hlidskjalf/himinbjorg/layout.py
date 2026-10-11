@@ -7,6 +7,7 @@ compositor re-applies the layout every tick, so placement switches live.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Dict, Tuple
 
@@ -29,10 +30,18 @@ class GridLayout:
     """
 
     def __init__(self, cols: int = 2, rows: int = 2, padding: int = 8) -> None:
+        for label, value in (("cols", cols), ("rows", rows)):
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise ValueError(f"{label} must be an integer")
         if cols < 1 or rows < 1:
             raise ValueError("cols and rows must be >= 1")
-        if padding < 0:
-            raise ValueError("padding must be >= 0")
+        if (
+            isinstance(padding, bool)
+            or not isinstance(padding, (int, float))
+            or not math.isfinite(padding)
+            or padding < 0
+        ):
+            raise ValueError("padding must be a finite number >= 0")
         self.cols = cols
         self.rows = rows
         self.padding = padding
@@ -42,6 +51,13 @@ class GridLayout:
     def place(self, viewport_name: str, col: int, row: int,
               col_span: int = 1, row_span: int = 1) -> "_Cell":
         """Assign a viewport to a grid cell (replaces any prior placement)."""
+        for label, value in (
+            ("col", col), ("row", row), ("col_span", col_span), ("row_span", row_span)
+        ):
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise ValueError(f"{label} must be an integer")
+        if col_span < 1 or row_span < 1:
+            raise ValueError("col_span and row_span must be >= 1")
         if not (0 <= col < self.cols and 0 <= row < self.rows):
             raise ValueError(f"cell ({col}, {row}) outside {self.cols}x{self.rows} grid")
         if col + col_span > self.cols or row + row_span > self.rows:
@@ -67,6 +83,14 @@ class GridLayout:
     # -- resolution ----------------------------------------------------------
     def layout(self, width: int, height: int) -> Dict[str, Rect]:
         """Resolve every placement to a canvas-pixel :class:`Rect`."""
+        for label, value in (("width", width), ("height", height)):
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value <= 0
+            ):
+                raise ValueError(f"{label} must be a finite, positive number")
         pad = float(self.padding)
         usable_w = float(width) - pad * (self.cols + 1)
         usable_h = float(height) - pad * (self.rows + 1)

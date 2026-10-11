@@ -81,7 +81,12 @@ class InputRouter:
         self.refresh()
         if not self._focus_order:
             return None
-        self._focus_idx = (self._focus_idx - 1) % len(self._focus_order)
+        if self._focus_idx < 0:
+            # From no focus, "previous" means the last focusable viewport;
+            # (-1 - 1) % n would land on the second-to-last instead.
+            self._focus_idx = len(self._focus_order) - 1
+        else:
+            self._focus_idx = (self._focus_idx - 1) % len(self._focus_order)
         return self.focused()
 
     def blur(self) -> None:

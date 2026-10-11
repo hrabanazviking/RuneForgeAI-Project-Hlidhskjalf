@@ -6,8 +6,15 @@ off ``compositor.theme`` / ``viewport.theme`` so themes switch live.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Dict, List
+
+_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+_COLOR_FIELDS = (
+    "background", "panel", "foreground", "muted", "accent",
+    "accent2", "ok", "warn", "crit",
+)
 
 
 @dataclass(frozen=True)
@@ -25,6 +32,22 @@ class Theme:
     warn: str
     crit: str
     font_size: int = 14
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.name, str) or not self.name:
+            raise ValueError("theme name must be a non-empty string")
+        for field_name in _COLOR_FIELDS:
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not _COLOR_RE.match(value):
+                raise ValueError(
+                    f"theme colour {field_name} must be a #rrggbb string, got {value!r}"
+                )
+        if (
+            isinstance(self.font_size, bool)
+            or not isinstance(self.font_size, int)
+            or self.font_size < 1
+        ):
+            raise ValueError("theme font_size must be a positive integer")
 
     def color(self, key: str, default: str = "#ffffff") -> str:
         """Look up a colour by attribute name with a safe fallback."""
@@ -63,6 +86,8 @@ DEFAULT_THEME = "ember"
 
 def get_theme(name: str) -> Theme:
     """Return the named theme; raises :class:`KeyError` if unknown."""
+    if not isinstance(name, str):
+        raise KeyError(f"unknown himinbjorg theme: {name!r} (known: {sorted(THEMES)})")
     try:
         return THEMES[name]
     except KeyError:

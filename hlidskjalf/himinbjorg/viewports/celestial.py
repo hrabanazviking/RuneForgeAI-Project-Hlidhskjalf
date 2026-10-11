@@ -34,10 +34,15 @@ class CelestialViewport(Viewport):
         planets: Dict[str, float] = {}
         if isinstance(raw, Mapping):
             for planet, deg in raw.items():
+                if isinstance(deg, bool):
+                    continue
                 try:
-                    planets[str(planet)] = float(deg) % 360.0
+                    value = float(deg)
                 except (TypeError, ValueError):
                     continue
+                if not math.isfinite(value):
+                    continue
+                planets[str(planet)] = value % 360.0
         self.planets = planets
 
     # -- render ---------------------------------------------------------------
