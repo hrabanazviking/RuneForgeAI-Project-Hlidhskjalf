@@ -9,7 +9,7 @@ failed agents never abort the merge.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 DEFAULT_STRATEGY = "concat"
 
@@ -51,6 +51,11 @@ def aggregate(
     ``"concat"`` (default), ``"extend"``, ``"merge_dicts"``.
     """
     results = list(results)
+    for r in results:
+        if not isinstance(r, Mapping):
+            raise ValueError(
+                f"each result must be a mapping, got {type(r).__name__}"
+            )
     succeeded = [r for r in results if r.get("ok")]
     failed = [r for r in results if not r.get("ok")]
 
@@ -63,16 +68,31 @@ def aggregate(
         for r in failed
     ]
 
+    outputs: Dict[Any, Any] = {}
+    for i, r in enumerate(succeeded):
+        key = r.get("agent_id")
+        if key is None:
+            key = f"result-{i}"
+        else:
+            try:
+                hash(key)
+            except TypeError:
+                key = f"result-{i}"
+        if key in outputs:
+            # Duplicate agent ids must not silently overwrite an earlier
+            # agent's output; keep both under a suffixed key.
+            key = f"{key}#{i}"
+            while key in outputs:
+                key = f"{key}#dup"
+        outputs[key] = r.get("output")
+
     return {
         "total": len(results),
         "succeeded": len(succeeded),
         "failed": len(failed),
         "errors": errors,
         "merged_output": _merge_payloads(payloads, strategy, separator),
-        "outputs": {
-            r.get("agent_id", f"result-{i}"): r.get("output")
-            for i, r in enumerate(succeeded)
-        },
+        "outputs": outputs,
     }
 
 

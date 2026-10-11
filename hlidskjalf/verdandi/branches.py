@@ -12,8 +12,9 @@ underlying Timeline.
 
 from __future__ import annotations
 
+import math
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 from hlidskjalf.kista._compat import NotFoundError, ValidationError, get_logger, new_id
 from hlidskjalf.verdandi.timeline import Timeline
@@ -52,6 +53,18 @@ class BranchManager:
         """Append a divergent event to a branch (not to main)."""
         if branch not in self.branches:
             raise NotFoundError(f"branch not found: {branch}")
+        if not isinstance(event_type, str) or not event_type:
+            raise ValidationError("event_type must be a non-empty string")
+        if not isinstance(entity, str) or not entity:
+            raise ValidationError("entity must be a non-empty string")
+        if payload is not None and not isinstance(payload, Mapping):
+            raise ValidationError("payload must be a mapping or None")
+        if ts is not None and (
+            isinstance(ts, bool)
+            or not isinstance(ts, (int, float))
+            or not math.isfinite(ts)
+        ):
+            raise ValidationError("ts must be a finite number")
         event = {
             "id": new_id(),
             "ts": float(ts) if ts is not None else time.time(),

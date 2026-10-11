@@ -19,6 +19,7 @@ seconds apart and ranked by delta (highest first); ``top_n`` entries are kept.
 
 from __future__ import annotations
 
+import math
 import os
 import platform
 import shutil
@@ -118,6 +119,15 @@ def _top_processes_ps(top_n: int) -> list[dict[str, Any]]:
 
 def top_processes(top_n: int = 10, sample_interval: float = 0.1) -> list[dict[str, Any]]:
     """Return the ``top_n`` processes ranked by CPU usage (highest first)."""
+    if isinstance(top_n, bool) or not isinstance(top_n, int) or top_n < 1:
+        raise ValueError("top_n must be an integer >= 1")
+    if (
+        isinstance(sample_interval, bool)
+        or not isinstance(sample_interval, (int, float))
+        or not math.isfinite(sample_interval)
+        or sample_interval < 0
+    ):
+        raise ValueError("sample_interval must be a finite number >= 0")
     if os.path.isdir("/proc"):
         try:
             return _top_processes_proc(top_n, sample_interval)

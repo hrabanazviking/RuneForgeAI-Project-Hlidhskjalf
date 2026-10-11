@@ -102,6 +102,11 @@ class VersionGraph:
 
     def history(self, version_id: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Provenance chain, newest first, following first-parent links."""
+        if limit is not None:
+            if isinstance(limit, bool) or not isinstance(limit, int) or limit < 0:
+                raise ValidationError("history limit must be an integer >= 0")
+            if limit == 0:
+                return []
         out: List[Dict[str, Any]] = []
         seen = set()
         current: Optional[str] = version_id

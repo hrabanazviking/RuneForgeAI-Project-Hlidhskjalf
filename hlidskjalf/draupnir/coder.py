@@ -65,12 +65,32 @@ class MythicCoder:
         for name in spec.file_names:
             sources.setdefault(name, gen(name, spec.context))  # type: ignore[arg-type]
 
+        # Pre-validate EVERYTHING before writing anything: source types,
+        # relative paths, workspace containment, and .py syntax. A bad
+        # file used to be discovered mid-write, leaving a partial forge
+        # (valid files — and the broken one — already on disk).
+        targets: Dict[str, Path] = {}
+        for rel, source in sources.items():
+            if not isinstance(rel, str) or not rel:
+                raise CodegenError(f"file path must be a non-empty string: {rel!r}")
+            if not isinstance(source, str):
+                raise CodegenError(
+                    f"source for {rel!r} must be a string, got {type(source).__name__}"
+                )
+            target = (root / Path(rel)).resolve()
+            if root not in target.parents and target != root:
+                raise CodegenError(f"path escapes workspace: {rel!r}")
+            targets[rel] = target
+            if target.suffix == ".py":
+                try:
+                    compile(source, rel, "exec")
+                except SyntaxError as exc:
+                    raise CodegenError(f"syntax error in {rel}: {exc}") from exc
+
         written: List[str] = []
         for rel, source in sources.items():
             rel_path = Path(rel)
-            target = (root / rel_path).resolve()
-            if root not in target.parents and target != root:
-                raise CodegenError(f"path escapes workspace: {rel!r}")
+            target = targets[rel]
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(source, encoding="utf-8")
             written.append(str(rel_path))
