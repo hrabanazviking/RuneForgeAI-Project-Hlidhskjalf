@@ -8,9 +8,10 @@ The graph lives in memory and persists/restores as JSON.
 from __future__ import annotations
 
 import json
+import math
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 from hlidskjalf.kista._compat import (
     NotFoundError,
@@ -20,6 +21,21 @@ from hlidskjalf.kista._compat import (
 )
 
 log = get_logger(__name__)
+
+
+def _validate_weight(weight: Any) -> float:
+    """A causal weight must be a real, finite number in [0, 1].
+
+    ``bool`` is rejected explicitly: it is an ``int`` subclass, so
+    ``weight=True`` used to slip through the range check as ``1.0``.
+    """
+    if isinstance(weight, bool) or not isinstance(weight, (int, float)):
+        raise ValidationError(
+            f"weight must be a number in [0, 1], got {type(weight).__name__}"
+        )
+    if not math.isfinite(weight) or not 0.0 <= weight <= 1.0:
+        raise ValidationError("weight must be in [0, 1]")
+    return float(weight)
 
 
 class CausalGraph:
@@ -36,9 +52,15 @@ class CausalGraph:
         node_type: str = "entity",
         attrs: Optional[Dict[str, Any]] = None,
     ) -> str:
+        if node_id is not None and (
+            not isinstance(node_id, str) or not node_id
+        ):
+            raise ValidationError("node_id must be a non-empty string")
+        if attrs is not None and not isinstance(attrs, Mapping):
+            raise ValidationError("attrs must be a mapping or None")
         nid = node_id or new_id()
-        if not node_type:
-            raise ValidationError("node_type must be non-empty")
+        if not isinstance(node_type, str) or not node_type:
+            raise ValidationError("node_type must be a non-empty string")
         self.nodes[nid] = {
             "id": nid,
             "type": node_type,
@@ -81,9 +103,8 @@ class CausalGraph:
             raise NotFoundError(f"edge source not found: {from_id}")
         if to_id not in self.nodes:
             raise NotFoundError(f"edge target not found: {to_id}")
-        if not 0.0 <= weight <= 1.0:
-            raise ValidationError("weight must be in [0, 1]")
-        edge = {"from": from_id, "to": to_id, "weight": float(weight), "label": label}
+        weight = _validate_weight(weight)
+        edge = {"from": from_id, "to": to_id, "weight": weight, "label": label}
         self.edges.append(edge)
         return edge
 
@@ -121,10 +142,31 @@ class CausalGraph:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "CausalGraph":
+        if not isinstance(data, Mapping):
+            raise ValidationError("graph data must be a mapping")
+        nodes = data.get("nodes", [])
+        edges = data.get("edges", [])
+        if not isinstance(nodes, list) or not isinstance(edges, list):
+            raise ValidationError("graph 'nodes' and 'edges' must be lists")
         g = cls()
-        for node in data.get("nodes", []):
-            g.nodes[node["id"]] = dict(node)
-        for edge in data.get("edges", []):
+        for node in nodes:
+            if not isinstance(node, Mapping):
+                raise ValidationError("graph node entries must be mappings")
+            nid = node.get("id")
+            if not isinstance(nid, str) or not nid:
+                raise ValidationError("graph node 'id' must be a non-empty string")
+            if nid in g.nodes:
+                raise ValidationError(f"duplicate node id in graph data: {nid}")
+            g.nodes[nid] = dict(node)
+        for edge in edges:
+            if not isinstance(edge, Mapping):
+                raise ValidationError("graph edge entries must be mappings")
+            src, dst = edge.get("from"), edge.get("to")
+            if src not in g.nodes or dst not in g.nodes:
+                raise ValidationError(
+                    f"graph edge references unknown node: {src!r} -> {dst!r}"
+                )
+            _validate_weight(edge.get("weight", 1.0))
             g.edges.append(dict(edge))
         return g
 

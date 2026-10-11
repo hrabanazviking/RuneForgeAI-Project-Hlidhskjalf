@@ -10,6 +10,7 @@ Returns ``[(node_dict, score)]`` sorted by descending score.
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from typing import Dict, List, Tuple
 
@@ -17,6 +18,24 @@ from hlidskjalf.kista._compat import NotFoundError, ValidationError, get_logger
 from hlidskjalf.wyrd.graph import CausalGraph
 
 log = get_logger(__name__)
+
+
+def _validate_walk(max_depth: int, decay: float) -> None:
+    """Shared argument validation for both walk directions.
+
+    ``effects_of`` used to skip the decay check entirely, so decay=0 or
+    NaN silently produced empty/garbage rankings while ``causes_of``
+    raised. ``bool`` is rejected for both arguments (int subclass).
+    """
+    if isinstance(max_depth, bool) or not isinstance(max_depth, int) or max_depth < 1:
+        raise ValidationError("max_depth must be an integer >= 1")
+    if (
+        isinstance(decay, bool)
+        or not isinstance(decay, (int, float))
+        or not math.isfinite(decay)
+        or not 0.0 < decay <= 1.0
+    ):
+        raise ValidationError("decay must be in (0, 1]")
 
 
 def causes_of(
@@ -27,10 +46,7 @@ def causes_of(
 ) -> List[Tuple[Dict, float]]:
     """Ranked upstream cause chain for ``node_id``."""
     graph.get_node(node_id)  # validate target exists
-    if max_depth < 1:
-        raise ValidationError("max_depth must be >= 1")
-    if not 0.0 < decay <= 1.0:
-        raise ValidationError("decay must be in (0, 1]")
+    _validate_walk(max_depth, decay)
 
     best: Dict[str, float] = {}
     queue: deque[Tuple[str, float, int]] = deque([(node_id, 1.0, 0)])
@@ -63,8 +79,7 @@ def effects_of(
 ) -> List[Tuple[Dict, float]]:
     """Ranked downstream effects of ``node_id`` (forward walk)."""
     graph.get_node(node_id)
-    if max_depth < 1:
-        raise ValidationError("max_depth must be >= 1")
+    _validate_walk(max_depth, decay)
 
     best: Dict[str, float] = {}
     queue: deque[Tuple[str, float, int]] = deque([(node_id, 1.0, 0)])

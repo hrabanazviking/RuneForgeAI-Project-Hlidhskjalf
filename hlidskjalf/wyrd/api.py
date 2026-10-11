@@ -52,6 +52,8 @@ def query(
             return _ok(kind, {"nodes": nodes, "count": len(nodes)})
         if kind == "neighbors":
             direction = q.get("direction", "both")
+            if direction not in ("out", "in", "both"):
+                return _err(f"invalid direction: {direction!r}")
             node = graph.get_node(q["id"])
             out = {"node": node}
             if direction in ("out", "both"):
@@ -60,13 +62,13 @@ def query(
                 out["predecessors"] = graph.predecessors(q["id"])
             return _ok(kind, out)
         if kind == "causes":
-            ranked = inference.causes_of(graph, q["node"], max_depth=int(q.get("max_depth", 5)))
+            ranked = inference.causes_of(graph, q["node"], max_depth=q.get("max_depth", 5))
             return _ok(
                 kind,
                 {"node": q["node"], "causes": [{"node": n, "score": s} for n, s in ranked]},
             )
         if kind == "effects":
-            ranked = inference.effects_of(graph, q["node"], max_depth=int(q.get("max_depth", 5)))
+            ranked = inference.effects_of(graph, q["node"], max_depth=q.get("max_depth", 5))
             return _ok(
                 kind,
                 {"node": q["node"], "effects": [{"node": n, "score": s} for n, s in ranked]},
